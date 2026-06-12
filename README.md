@@ -5,16 +5,6 @@
 <img src="https://raw.githubusercontent.com/vincent-zhi/OpenBrige/main/docs/assets/banner.svg" alt="OpenBrige" width="100%" />
 
 <br />
-<br />
-
-<pre align="center" style="background: transparent; border: none;">
-╔══════════════════════════════════════════════════════════════╗
-║  <b>Agent is a black box. OpenBrige is the cockpit.</b>            ║
-║  <b>Agent 是黑盒，OpenBrige 是驾驶舱。</b>                         ║
-╚══════════════════════════════════════════════════════════════╝
-</pre>
-
-<br />
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?style=flat-square&color=6366f1)](https://www.gnu.org/licenses/agpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
