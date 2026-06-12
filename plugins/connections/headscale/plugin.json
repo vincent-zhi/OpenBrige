@@ -1,0 +1,7 @@
+{
+  "id": "headscale",
+  "name": "Headscale",
+  "version": "0.1.0",
+  "type": "connection",
+  "description": "Tunnel via Headscale-managed WireGuard VPN"
+}

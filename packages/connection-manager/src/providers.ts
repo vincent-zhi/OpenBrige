@@ -159,3 +159,34 @@ export class NgrokConnectionProvider implements ConnectionProvider {
     ];
   }
 }
+
+/** Headscale (WireGuard management plane) connection provider */
+export class HeadscaleConnectionProvider implements ConnectionProvider {
+  readonly id = 'headscale';
+  readonly name = 'Headscale';
+
+  async detect(): Promise<ConnectionCapability> {
+    return { available: true, requiresSetup: true, description: 'Headscale-managed WireGuard VPN' };
+  }
+
+  async start(config: Record<string, unknown>): Promise<ConnectionEndpoint> {
+    const host = (config.tailnetIP as string) ?? '100.64.0.1';
+    const port = (config.listenPort as number) ?? 7443;
+    return {
+      url: `https://${host}:${port}`,
+      host,
+      port,
+      protocol: 'https',
+    };
+  }
+
+  async stop(): Promise<void> {
+    // stub: no-op
+  }
+
+  async doctor(): Promise<DiagnosticResult[]> {
+    return [
+      { name: 'Headscale CLI', status: 'warning', message: 'Headscale CLI check not implemented', details: 'Requires headscale CLI installed and authenticated' },
+    ];
+  }
+}

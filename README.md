@@ -15,7 +15,7 @@
 **Local-first web control plane for any AI coding agent**<br/>
 **本地优先的 AI 编程 Agent 通用 Web 控制台**
 
-[Quick Start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Plugins](#plugin-system) · [Roadmap](./docs/roadmap.md) · [Contributing](./CONTRIBUTING.md)
+[Quick Start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Plugins](#plugin-system) · [Roadmap](./docs/roadmap.md) · [Contributing](./.github/CONTRIBUTING.md)
 
 </div>
 
@@ -251,9 +251,9 @@ pnpm typecheck     # Type-check all packages / 类型检查所有包
 
 ## Contributing / 贡献
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, code style, and PR process.
+See [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for development setup, code style, and PR process.
 
-查看 [CONTRIBUTING.md](./CONTRIBUTING.md) 了解开发环境配置、代码规范和 PR 流程。
+查看 [CONTRIBUTING.md](./.github/CONTRIBUTING.md) 了解开发环境配置、代码规范和 PR 流程。
 
 ---
 

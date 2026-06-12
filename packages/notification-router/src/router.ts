@@ -278,3 +278,27 @@ export class EmailNotificationProvider implements NotificationProvider {
     });
   }
 }
+
+/** Native Companion notification provider (desktop app companion) */
+export class NativeCompanionProvider implements NotificationProvider {
+  readonly id = 'native-companion';
+  readonly name = 'Native Companion';
+  private port: number;
+
+  constructor(port = 17920) {
+    this.port = port;
+  }
+
+  async send(message: NotificationMessage): Promise<void> {
+    await fetch(`http://127.0.0.1:${this.port}/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: message.title,
+        body: message.body,
+        severity: message.severity,
+        sessionId: message.sessionId,
+      }),
+    });
+  }
+}

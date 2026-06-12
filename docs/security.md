@@ -125,4 +125,4 @@ openbrige device revoke <device_id>
 
 ## Vulnerability Reporting
 
-See [SECURITY.md](../SECURITY.md) for how to report security vulnerabilities.
+See [SECURITY.md](../.github/SECURITY.md) for how to report security vulnerabilities.

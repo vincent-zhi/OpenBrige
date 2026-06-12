@@ -40,7 +40,7 @@ interface EventRow {
   session_id: string;
   seq: number;
   type: string;
-  payload: string;
+  payload_json: string;
   created_at: string;
 }
 
@@ -51,7 +51,7 @@ interface SmartCardRow {
   title: string;
   summary: string;
   severity: string;
-  actions: string;
+  payload_json: string;
   created_at: string;
 }
 
@@ -60,10 +60,7 @@ interface FileRow {
   session_id: string;
   path: string;
   change_type: string;
-  old_path: string | null;
-  content_hash: string | null;
-  created_at: string;
-  updated_at: string;
+  last_seen_at: string;
 }
 
 interface ConnectionRow {
@@ -106,7 +103,7 @@ function toEvent(row: EventRow): BridgeEvent {
     sessionId: row.session_id,
     seq: row.seq,
     type: row.type as EventType,
-    payload: JSON.parse(row.payload),
+    payload: JSON.parse(row.payload_json),
     createdAt: row.created_at,
   };
 }
@@ -119,7 +116,7 @@ function toSmartCard(row: SmartCardRow): SmartCard {
     title: row.title,
     summary: row.summary,
     severity: row.severity as SmartCardSeverity,
-    actions: JSON.parse(row.actions) as CardAction[],
+    actions: JSON.parse(row.payload_json) as CardAction[],
     createdAt: row.created_at,
   };
 }
@@ -129,10 +126,7 @@ export interface StoredFile {
   sessionId: string;
   path: string;
   changeType: 'created' | 'modified' | 'deleted' | 'renamed';
-  oldPath?: string;
-  contentHash?: string;
-  createdAt: string;
-  updatedAt: string;
+  lastSeenAt: string;
 }
 
 function toFile(row: FileRow): StoredFile {
@@ -141,10 +135,7 @@ function toFile(row: FileRow): StoredFile {
     sessionId: row.session_id,
     path: row.path,
     changeType: row.change_type as StoredFile['changeType'],
-    oldPath: row.old_path ?? undefined,
-    contentHash: row.content_hash ?? undefined,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    lastSeenAt: row.last_seen_at,
   };
 }
 
@@ -298,7 +289,7 @@ export class Store {
 
     this.db
       .prepare(
-        'INSERT INTO events (id, session_id, seq, type, payload, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+        'INSERT INTO events (id, session_id, seq, type, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)',
       )
       .run(id, sessionId, maxRow.next_seq, type, JSON.stringify(payload), ts);
 
@@ -346,7 +337,7 @@ export class Store {
     const ts = now();
     this.db
       .prepare(
-        `INSERT INTO smart_cards (id, session_id, kind, title, summary, severity, actions, created_at)
+        `INSERT INTO smart_cards (id, session_id, kind, title, summary, severity, payload_json, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
@@ -384,7 +375,6 @@ export class Store {
     sessionId: string,
     path: string,
     changeType: StoredFile['changeType'],
-    opts?: { oldPath?: string; contentHash?: string },
   ): StoredFile {
     const ts = now();
     const existing = this.db
@@ -394,9 +384,9 @@ export class Store {
     if (existing) {
       this.db
         .prepare(
-          `UPDATE files SET change_type = ?, old_path = ?, content_hash = ?, updated_at = ? WHERE id = ?`,
+          `UPDATE files SET change_type = ?, last_seen_at = ? WHERE id = ?`,
         )
-        .run(changeType, opts?.oldPath ?? null, opts?.contentHash ?? null, ts, existing.id);
+        .run(changeType, ts, existing.id);
       return toFile(
         this.db.prepare('SELECT * FROM files WHERE id = ?').get(existing.id) as FileRow,
       );
@@ -405,10 +395,10 @@ export class Store {
     const id = nanoid();
     this.db
       .prepare(
-        `INSERT INTO files (id, session_id, path, change_type, old_path, content_hash, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO files (id, session_id, path, change_type, last_seen_at)
+         VALUES (?, ?, ?, ?, ?)`,
       )
-      .run(id, sessionId, path, changeType, opts?.oldPath ?? null, opts?.contentHash ?? null, ts, ts);
+      .run(id, sessionId, path, changeType, ts);
     return toFile(
       this.db.prepare('SELECT * FROM files WHERE id = ?').get(id) as FileRow,
     );

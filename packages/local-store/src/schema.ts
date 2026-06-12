@@ -28,7 +28,7 @@ const MIGRATIONS: Record<number, (db: Database.Database) => void> = {
         session_id TEXT NOT NULL,
         seq INTEGER NOT NULL,
         type TEXT NOT NULL,
-        payload TEXT NOT NULL DEFAULT '{}',
+        payload_json TEXT NOT NULL DEFAULT '{}',
         created_at TEXT NOT NULL
       );
 
@@ -39,7 +39,7 @@ const MIGRATIONS: Record<number, (db: Database.Database) => void> = {
         title TEXT NOT NULL,
         summary TEXT NOT NULL,
         severity TEXT NOT NULL,
-        actions TEXT NOT NULL DEFAULT '[]',
+        payload_json TEXT NOT NULL DEFAULT '{}',
         created_at TEXT NOT NULL
       );
 
@@ -48,10 +48,7 @@ const MIGRATIONS: Record<number, (db: Database.Database) => void> = {
         session_id TEXT NOT NULL,
         path TEXT NOT NULL,
         change_type TEXT NOT NULL,
-        old_path TEXT,
-        content_hash TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        last_seen_at TEXT NOT NULL
       );
 
       CREATE TABLE IF NOT EXISTS connections (

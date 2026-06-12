@@ -1233,9 +1233,10 @@ openbrige/
 
   README.md
   LICENSE
-  SECURITY.md
-  CONTRIBUTING.md
-  GOVERNANCE.md
+  .github/
+    SECURITY.md
+    CONTRIBUTING.md
+    GOVERNANCE.md
 ```
 
 ---
