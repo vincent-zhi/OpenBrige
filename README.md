@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="./docs/assets/banner.svg" alt="OpenBrige" width="100%" />
+<img src="https://raw.githubusercontent.com/vincent-zhi/OpenBrige/main/docs/assets/banner.svg" alt="OpenBrige" width="100%" />
 
 <br />
 <br />
