@@ -1,141 +1,114 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" width="800" height="320">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #0f172a;
-      --text-secondary: #475569;
-      --border: #e2e8f0;
-      --border-strong: #cbd5e1;
-      --accent: #0891b2;
-      --accent-light: #22d3ee;
-      --agent-bg: #f8fafc;
-      --arrow: #94a3b8;
-      --phone-bg: #f0fdfa;
-      --computer-bg: #fff7ed;
+      --surface: #ffffff;
+      --text: #1c1917;
+      --text-secondary: #78716c;
+      --border: #e7e5e4;
+      --border-strong: #d6d3d1;
+      --cyan: #0d9488;
+      --cyan-light: #14b8a6;
+      --cyan-bg: #f0fdfa;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --agent-bg: #fafaf9;
+      --arrow: #a8a29e;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0a0f1c;
-        --text: #f8fafc;
-        --text-secondary: #94a3b8;
-        --border: #1e293b;
-        --border-strong: #334155;
-        --accent: #5eead4;
-        --accent-light: #38bdf8;
-        --agent-bg: #0f172a;
-        --arrow: #475569;
-        --phone-bg: #0f172a;
-        --computer-bg: #0f172a;
+        --surface: #0c0a09;
+        --text: #f5f5f4;
+        --text-secondary: #a8a29e;
+        --border: #292524;
+        --border-strong: #44403c;
+        --cyan: #2dd4bf;
+        --cyan-light: #5eead4;
+        --cyan-bg: #1c1917;
+        --amber: #fbbf24;
+        --amber-bg: #1c1917;
+        --agent-bg: #1c1917;
+        --arrow: #57534e;
       }
     }
   </style>
 
-  <defs>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="1.5" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-
-  <!-- 透明背景 -->
-  <rect width="800" height="320" fill="transparent"/>
+  <rect width="800" height="300" fill="transparent"/>
 
   <!-- ====== Your Phone ====== -->
-  <g transform="translate(100, 60)">
-    <rect x="-70" y="-35" width="140" height="70" rx="8" fill="var(--phone-bg)" stroke="var(--accent)" stroke-width="1.5" filter="url(#glow)"/>
-    <rect x="-62" y="-27" width="124" height="54" rx="4" fill="none" stroke="var(--border)" stroke-width="0.8"/>
-    <text x="0" y="-5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="var(--text)">Your Phone</text>
-    <text x="0" y="12" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="var(--text-secondary)">(Browser)</text>
-    <!-- 小圆点装饰 -->
-    <circle cx="-55" cy="-20" r="2" fill="var(--accent)" opacity="0.6"/>
+  <g transform="translate(120, 55)">
+    <rect x="-65" y="-32" width="130" height="64" rx="8" fill="var(--cyan-bg)" stroke="var(--cyan)" stroke-width="1"/>
+    <text x="0" y="-4" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="var(--text)">Your Phone</text>
+    <text x="0" y="12" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="var(--text-secondary)">(Browser)</text>
+    <circle cx="-52" cy="-18" r="2" fill="var(--cyan)" opacity="0.5"/>
   </g>
 
   <!-- ====== Your Computer ====== -->
-  <g transform="translate(600, 60)">
-    <rect x="-80" y="-35" width="160" height="70" rx="8" fill="var(--computer-bg)" stroke="var(--accent-light)" stroke-width="1.5" filter="url(#glow)"/>
-    <rect x="-72" y="-27" width="144" height="54" rx="4" fill="none" stroke="var(--border)" stroke-width="0.8"/>
-    <text x="0" y="-5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="var(--text)">Your Computer</text>
-    <text x="0" y="12" text-anchor="middle" font-family="ui-monospace, monospace" font-size="11" fill="var(--text-secondary)">(OpenBrige Host)</text>
-    <!-- 状态灯 -->
-    <circle cx="-65" cy="-20" r="2" fill="#10b981" opacity="0.8"/>
-    <circle cx="-58" cy="-20" r="2" fill="var(--accent)" opacity="0.5"/>
+  <g transform="translate(600, 55)">
+    <rect x="-75" y="-32" width="150" height="64" rx="8" fill="var(--amber-bg)" stroke="var(--amber)" stroke-width="1"/>
+    <text x="0" y="-4" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="var(--text)">Your Computer</text>
+    <text x="0" y="12" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="var(--text-secondary)">(OpenBrige Host)</text>
+    <circle cx="-62" cy="-18" r="2" fill="#10b981" opacity="0.7"/>
+    <circle cx="-56" cy="-18" r="2" fill="var(--cyan)" opacity="0.4"/>
   </g>
 
-  <!-- ====== 连接线：WebSocket / HTTPS ====== -->
-  <g transform="translate(400, 45)">
-    <!-- 双向箭头 -->
-    <line x1="-180" y1="0" x2="180" y2="0" stroke="var(--accent)" stroke-width="1.5" opacity="0.6"/>
-    <!-- 左箭头 -->
-    <polygon points="-175,-4 -185,0 -175,4" fill="var(--accent)" opacity="0.6"/>
-    <!-- 右箭头 -->
-    <polygon points="175,-4 185,0 175,4" fill="var(--accent)" opacity="0.6"/>
-    <!-- 标签 -->
-    <text x="0" y="-8" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" font-weight="500" fill="var(--accent)" letter-spacing="1">WebSocket / HTTPS</text>
+  <!-- ====== 双向箭头 ====== -->
+  <g transform="translate(400, 42)">
+    <line x1="-160" y1="0" x2="160" y2="0" stroke="var(--cyan)" stroke-width="1" opacity="0.5"/>
+    <polygon points="-155,-3 -162,0 -155,3" fill="var(--cyan)" opacity="0.5"/>
+    <polygon points="155,-3 162,0 155,3" fill="var(--cyan)" opacity="0.5"/>
+    <text x="0" y="-6" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" font-weight="500" fill="var(--cyan)" letter-spacing="0.5">WebSocket / HTTPS</text>
   </g>
 
-  <!-- Same Wi-Fi 标签 -->
-  <g transform="translate(400, 75)">
-    <text x="0" y="0" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" fill="var(--text-secondary)" opacity="0.7">Same Wi-Fi</text>
+  <!-- Same Wi-Fi -->
+  <g transform="translate(400, 68)">
+    <text x="0" y="0" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" fill="var(--text-secondary)" opacity="0.6">Same Wi-Fi</text>
   </g>
 
-  <!-- ====== 垂直连接线 ====== -->
-  <line x1="600" y1="95" x2="600" y2="130" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="4,2" opacity="0.5"/>
+  <!-- 连接线 -->
+  <line x1="600" y1="87" x2="600" y2="115" stroke="var(--arrow)" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.4"/>
+  <line x1="180" y1="115" x2="600" y2="115" stroke="var(--arrow)" stroke-width="0.8" opacity="0.3"/>
 
-  <!-- ====== 水平分支线 ====== -->
-  <line x1="200" y1="130" x2="600" y2="130" stroke="var(--arrow)" stroke-width="1" opacity="0.4"/>
-
-  <!-- ====== 向下箭头 ====== -->
-  <g transform="translate(200, 130)">
-    <line x1="0" y1="0" x2="0" y2="25" stroke="var(--arrow)" stroke-width="1" opacity="0.5"/>
-    <polygon points="-3,20 0,28 3,20" fill="var(--arrow)" opacity="0.5"/>
+  <!-- 向下箭头 -->
+  <g transform="translate(180, 115)">
+    <line x1="0" y1="0" x2="0" y2="20" stroke="var(--arrow)" stroke-width="0.8" opacity="0.4"/>
+    <polygon points="-2.5,16 0,22 2.5,16" fill="var(--arrow)" opacity="0.4"/>
   </g>
-  <g transform="translate(400, 130)">
-    <line x1="0" y1="0" x2="0" y2="25" stroke="var(--arrow)" stroke-width="1" opacity="0.5"/>
-    <polygon points="-3,20 0,28 3,20" fill="var(--arrow)" opacity="0.5"/>
+  <g transform="translate(390, 115)">
+    <line x1="0" y1="0" x2="0" y2="20" stroke="var(--arrow)" stroke-width="0.8" opacity="0.4"/>
+    <polygon points="-2.5,16 0,22 2.5,16" fill="var(--arrow)" opacity="0.4"/>
   </g>
-  <g transform="translate(600, 130)">
-    <line x1="0" y1="0" x2="0" y2="25" stroke="var(--arrow)" stroke-width="1" opacity="0.5"/>
-    <polygon points="-3,20 0,28 3,20" fill="var(--arrow)" opacity="0.5"/>
+  <g transform="translate(600, 115)">
+    <line x1="0" y1="0" x2="0" y2="20" stroke="var(--arrow)" stroke-width="0.8" opacity="0.4"/>
+    <polygon points="-2.5,16 0,22 2.5,16" fill="var(--arrow)" opacity="0.4"/>
   </g>
 
   <!-- ====== Agent 节点 ====== -->
-  <!-- Claude Code -->
-  <g transform="translate(200, 200)">
-    <rect x="-55" y="-30" width="110" height="60" rx="6" fill="var(--agent-bg)" stroke="var(--border-strong)" stroke-width="1"/>
-    <rect x="-47" y="-22" width="94" height="44" rx="3" fill="none" stroke="var(--border)" stroke-width="0.6"/>
-    <text x="0" y="-2" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="var(--text)">Claude</text>
-    <text x="0" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--text-secondary)">Code</text>
+  <g transform="translate(180, 185)">
+    <rect x="-50" y="-28" width="100" height="56" rx="6" fill="var(--agent-bg)" stroke="var(--border-strong)" stroke-width="1"/>
+    <text x="0" y="-2" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--text)">Claude</text>
+    <text x="0" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="var(--text-secondary)">Code</text>
   </g>
 
-  <!-- Codex -->
-  <g transform="translate(400, 200)">
-    <rect x="-55" y="-30" width="110" height="60" rx="6" fill="var(--agent-bg)" stroke="var(--border-strong)" stroke-width="1"/>
-    <rect x="-47" y="-22" width="94" height="44" rx="3" fill="none" stroke="var(--border)" stroke-width="0.6"/>
-    <text x="0" y="-2" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="var(--text)">Codex</text>
-    <text x="0" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--text-secondary)"></text>
+  <g transform="translate(390, 185)">
+    <rect x="-50" y="-28" width="100" height="56" rx="6" fill="var(--agent-bg)" stroke="var(--border-strong)" stroke-width="1"/>
+    <text x="0" y="4" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--text)">Codex</text>
   </g>
 
-  <!-- Aider -->
-  <g transform="translate(600, 200)">
-    <rect x="-55" y="-30" width="110" height="60" rx="6" fill="var(--agent-bg)" stroke="var(--border-strong)" stroke-width="1"/>
-    <rect x="-47" y="-22" width="94" height="44" rx="3" fill="none" stroke="var(--border)" stroke-width="0.6"/>
-    <text x="0" y="-2" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="var(--text)">Aider</text>
-    <text x="0" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="var(--text-secondary)"></text>
+  <g transform="translate(600, 185)">
+    <rect x="-50" y="-28" width="100" height="56" rx="6" fill="var(--agent-bg)" stroke="var(--border-strong)" stroke-width="1"/>
+    <text x="0" y="4" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="var(--text)">Aider</text>
   </g>
 
-  <!-- ====== 底部说明 ====== -->
-  <g transform="translate(400, 280)">
-    <text x="0" y="0" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="var(--text-secondary)" opacity="0.6" letter-spacing="1">... AND MORE AGENTS</text>
+  <!-- 底部说明 -->
+  <g transform="translate(400, 260)">
+    <text x="0" y="0" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" fill="var(--text-secondary)" opacity="0.5" letter-spacing="1">... AND MORE AGENTS</text>
   </g>
 
   <!-- 四角装饰 -->
-  <g stroke="var(--border)" stroke-width="0.6" fill="none" opacity="0.3">
-    <path d="M 20 20 L 20 35 M 20 20 L 35 20"/>
-    <path d="M 780 20 L 780 35 M 780 20 L 765 20"/>
-    <path d="M 20 300 L 20 285 M 20 300 L 35 300"/>
-    <path d="M 780 300 L 780 285 M 780 300 L 765 300"/>
+  <g stroke="var(--border)" stroke-width="0.6" fill="none" opacity="0.2">
+    <path d="M 16 16 L 16 30 M 16 16 L 30 16"/>
+    <path d="M 784 16 L 784 30 M 784 16 L 770 16"/>
+    <path d="M 16 284 L 16 270 M 16 284 L 30 284"/>
+    <path d="M 784 284 L 784 270 M 784 284 L 770 284"/>
   </g>
 </svg>

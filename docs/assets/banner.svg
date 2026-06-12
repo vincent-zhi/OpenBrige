@@ -1,408 +1,200 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 560" width="1280" height="560">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" width="1280" height="520">
   <style>
-    /* 默认：适配亮色模式 */
     :root {
-      --bg-surface: #ffffff;
-      --bg-elevated: #f8fafc;
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --border-subtle: #e2e8f0;
-      --border-faint: #f1f5f9;
-      --accent-cyan: #0891b2;
-      --accent-cyan-light: #22d3ee;
-      --accent-amber: #d97706;
-      --accent-amber-light: #fbbf24;
-      --glow-cyan: rgba(8, 145, 178, 0.15);
-      --glow-amber: rgba(217, 119, 6, 0.15);
-      --box-bg: #f1f5f9;
-      --box-border: #cbd5e1;
-      --box-inner: #e2e8f0;
-      --bridge-metal: rgba(8, 145, 178, 0.2);
-      --particle-dim: #cbd5e1;
-      --particle-bright: #22d3ee;
-      --grid-color: #f1f5f9;
-      --corner-color: #e2e8f0;
+      /* OKLCH-based palette for perceptual uniformity */
+      --surface: #ffffff;
+      --text-primary: #1c1917;
+      --text-secondary: #78716c;
+      --text-tertiary: #a8a29e;
+      --border: #e7e5e4;
+      --border-subtle: #f5f5f4;
+      /* Cyan: OKLCH(65% 0.12 195) */
+      --cyan: #0d9488;
+      --cyan-light: #14b8a6;
+      --cyan-glow: rgba(13, 148, 136, 0.08);
+      /* Amber: OKLCH(70% 0.14 75) */
+      --amber: #d97706;
+      --amber-light: #f59e0b;
+      --amber-glow: rgba(217, 119, 6, 0.08);
+      --box-bg: #fafaf9;
+      --box-border: #d6d3d1;
+      --grid: #f5f5f4;
     }
-
-    /* 暗色模式 */
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg-surface: #0a0f1c;
-        --bg-elevated: #0f172a;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --text-muted: #475569;
-        --border-subtle: #1e293b;
-        --border-faint: #0f172a;
-        --accent-cyan: #5eead4;
-        --accent-cyan-light: #38bdf8;
-        --accent-amber: #fbbf24;
-        --accent-amber-light: #f97316;
-        --glow-cyan: rgba(94, 234, 212, 0.2);
-        --glow-amber: rgba(251, 191, 36, 0.2);
-        --box-bg: #0a0f1c;
-        --box-border: #1e293b;
-        --box-inner: #0f172a;
-        --bridge-metal: rgba(94, 234, 212, 0.15);
-        --particle-dim: #334155;
-        --particle-bright: #5eead4;
-        --grid-color: #111827;
-        --corner-color: #1e293b;
+        --surface: #0c0a09;
+        --text-primary: #f5f5f4;
+        --text-secondary: #a8a29e;
+        --text-tertiary: #57534e;
+        --border: #292524;
+        --border-subtle: #1c1917;
+        --cyan: #2dd4bf;
+        --cyan-light: #5eead4;
+        --cyan-glow: rgba(45, 212, 191, 0.1);
+        --amber: #fbbf24;
+        --amber-light: #fcd34d;
+        --amber-glow: rgba(251, 191, 36, 0.1);
+        --box-bg: #1c1917;
+        --box-border: #44403c;
+        --grid: #1c1917;
       }
     }
   </style>
 
   <defs>
-    <!-- 发光滤镜 -->
-    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-
-    <filter id="bloom" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-
-    <filter id="particleGlow">
-      <feGaussianBlur stdDeviation="1.2"/>
-    </filter>
-
-    <!-- 主色渐变 -->
-    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="var(--accent-cyan)"/>
-      <stop offset="100%" stop-color="var(--accent-cyan-light)"/>
-    </linearGradient>
-
-    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="var(--accent-amber)"/>
-      <stop offset="100%" stop-color="var(--accent-amber-light)"/>
-    </linearGradient>
-
-    <!-- 桥身 -->
-    <linearGradient id="bridgeMetal" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="var(--accent-cyan)" stop-opacity="0.4"/>
-      <stop offset="50%" stop-color="var(--accent-cyan-light)" stop-opacity="0.12"/>
-      <stop offset="100%" stop-color="var(--accent-cyan)" stop-opacity="0.02"/>
-    </linearGradient>
-
-    <!-- 网格 -->
-    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="var(--grid-color)" stroke-width="0.3"/>
-    </pattern>
-
-    <!-- 遮罩 -->
-    <mask id="fadeMask">
-      <rect width="1280" height="560" fill="url(#maskGrad)"/>
-      <radialGradient id="maskGrad">
-        <stop offset="0%" stop-color="white" stop-opacity="1"/>
-        <stop offset="60%" stop-color="white" stop-opacity="0.6"/>
-        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-      </radialGradient>
-    </mask>
   </defs>
 
-  <!-- 透明背景 -->
-  <rect width="1280" height="560" fill="transparent"/>
+  <rect width="1280" height="520" fill="transparent"/>
 
   <!-- 极淡网格 -->
-  <rect width="1280" height="560" fill="url(#grid)"/>
+  <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+    <path d="M 32 0 L 0 0 0 32" fill="none" stroke="var(--grid)" stroke-width="0.4"/>
+  </pattern>
+  <rect width="1280" height="520" fill="url(#grid)"/>
 
-  <!-- 中央光晕 -->
-  <ellipse cx="640" cy="220" rx="550" ry="200" fill="var(--glow-cyan)" opacity="0.3" filter="url(#bloom)"/>
+  <!-- 极淡的中央光晕 -->
+  <ellipse cx="640" cy="200" rx="400" ry="140" fill="var(--cyan-glow)" opacity="0.6"/>
 
-  <!-- ====== 粒子场 ====== -->
-  <g mask="url(#fadeMask)">
-    <g opacity="0.4">
-      <circle cx="200" cy="120" r="1.2" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="120;100;120" dur="8s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.4;0.8;0.4" dur="8s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="350" cy="180" r="1" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="180;160;180" dur="10s" repeatCount="indefinite" begin="1s"/>
-      </circle>
-      <circle cx="500" cy="100" r="1.5" fill="var(--particle-dim)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="100;80;100" dur="7s" repeatCount="indefinite" begin="2s"/>
-        <animate attributeName="opacity" values="0.3;0.7;0.3" dur="7s" repeatCount="indefinite" begin="2s"/>
-      </circle>
-      <circle cx="780" cy="140" r="1" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="140;120;140" dur="9s" repeatCount="indefinite" begin="0.5s"/>
-      </circle>
-      <circle cx="920" cy="160" r="1.3" fill="var(--particle-dim)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="160;140;160" dur="11s" repeatCount="indefinite" begin="3s"/>
-      </circle>
-      <circle cx="1080" cy="110" r="1" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="110;90;110" dur="8s" repeatCount="indefinite" begin="1.5s"/>
-      </circle>
-      <circle cx="120" cy="280" r="1" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="280;260;280" dur="12s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="280" cy="320" r="1.2" fill="var(--particle-dim)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="320;300;320" dur="9s" repeatCount="indefinite" begin="2s"/>
-      </circle>
-      <circle cx="480" cy="290" r="1" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="290;270;290" dur="10s" repeatCount="indefinite" begin="1s"/>
-      </circle>
-      <circle cx="720" cy="310" r="1.4" fill="var(--particle-dim)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="310;290;310" dur="8s" repeatCount="indefinite" begin="3s"/>
-      </circle>
-      <circle cx="960" cy="270" r="1" fill="var(--particle-dim)">
-        <animate attributeName="cy" values="270;250;270" dur="11s" repeatCount="indefinite" begin="0.5s"/>
-      </circle>
-      <circle cx="1140" cy="300" r="1.2" fill="var(--particle-dim)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="300;280;300" dur="9s" repeatCount="indefinite" begin="2.5s"/>
-      </circle>
-    </g>
-
-    <g opacity="0.6">
-      <circle cx="260" cy="150" r="1.5" fill="var(--particle-bright)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="150;130;150" dur="6s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.6;1;0.6" dur="6s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="420" cy="200" r="1.2" fill="var(--accent-cyan-light)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="200;180;200" dur="7s" repeatCount="indefinite" begin="1s"/>
-      </circle>
-      <circle cx="680" cy="130" r="1.5" fill="var(--particle-bright)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="130;110;130" dur="5s" repeatCount="indefinite" begin="2s"/>
-        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="5s" repeatCount="indefinite" begin="2s"/>
-      </circle>
-      <circle cx="860" cy="190" r="1.2" fill="var(--accent-cyan-light)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="190;170;190" dur="8s" repeatCount="indefinite" begin="0.5s"/>
-      </circle>
-      <circle cx="1020" cy="140" r="1.5" fill="var(--particle-bright)" filter="url(#particleGlow)">
-        <animate attributeName="cy" values="140;120;140" dur="6s" repeatCount="indefinite" begin="1.5s"/>
-      </circle>
-    </g>
-  </g>
-
-  <!-- ====== 波浪层 ====== -->
-  <g opacity="0.12" transform="translate(0, 380)">
-    <path d="M 0 20 Q 160 0 320 20 T 640 20 T 960 20 T 1280 20" fill="none" stroke="var(--accent-cyan)" stroke-width="1">
-      <animate attributeName="d"
-               values="M 0 20 Q 160 0 320 20 T 640 20 T 960 20 T 1280 20;
-                       M 0 20 Q 160 40 320 20 T 640 20 T 960 20 T 1280 20;
-                       M 0 20 Q 160 0 320 20 T 640 20 T 960 20 T 1280 20"
-               dur="6s" repeatCount="indefinite"/>
-    </path>
-    <path d="M 0 30 Q 160 10 320 30 T 640 30 T 960 30 T 1280 30" fill="none" stroke="var(--accent-cyan-light)" stroke-width="0.8">
-      <animate attributeName="d"
-               values="M 0 30 Q 160 10 320 30 T 640 30 T 960 30 T 1280 30;
-                       M 0 30 Q 160 50 320 30 T 640 30 T 960 30 T 1280 30;
-                       M 0 30 Q 160 10 320 30 T 640 30 T 960 30 T 1280 30"
-               dur="8s" repeatCount="indefinite" begin="1s"/>
-    </path>
-    <path d="M 0 40 Q 160 20 320 40 T 640 40 T 960 40 T 1280 40" fill="none" stroke="var(--accent-cyan)" stroke-width="0.6">
-      <animate attributeName="d"
-               values="M 0 40 Q 160 20 320 40 T 640 40 T 960 40 T 1280 40;
-                       M 0 40 Q 160 60 320 40 T 640 40 T 960 40 T 1280 40;
-                       M 0 40 Q 160 20 320 40 T 640 40 T 960 40 T 1280 40"
-               dur="10s" repeatCount="indefinite" begin="2s"/>
-    </path>
-  </g>
-
-  <!-- ====== 核心视觉：桥接 ====== -->
-  <g transform="translate(640, 230)">
+  <!-- ====== 核心视觉 ====== -->
+  <g transform="translate(640, 210)">
     <!-- 左侧黑盒 -->
-    <g transform="translate(-300, 0)">
-      <rect x="-52" y="-44" width="104" height="88" rx="6" fill="var(--box-bg)" stroke="var(--box-border)" stroke-width="1.5"/>
-      <rect x="-44" y="-36" width="88" height="72" rx="3" fill="none" stroke="var(--box-inner)" stroke-width="1"/>
-      <circle cx="0" cy="-6" r="14" fill="none" stroke="var(--text-muted)" stroke-width="1" opacity="0.4"/>
-      <circle cx="0" cy="-6" r="7" fill="none" stroke="var(--text-muted)" stroke-width="0.8" opacity="0.25"/>
-      <circle cx="0" cy="-6" r="2.5" fill="var(--text-muted)" opacity="0.15"/>
-      <rect x="-32" y="18" width="64" height="2.5" rx="1.25" fill="var(--box-inner)"/>
-      <rect x="-32" y="26" width="42" height="2.5" rx="1.25" fill="var(--border-faint)"/>
-      <text x="0" y="-2" text-anchor="middle" fill="var(--text-muted)" font-family="system-ui, sans-serif" font-size="12" font-weight="300" opacity="0.2">?</text>
+    <g transform="translate(-280, 0)">
+      <rect x="-48" y="-40" width="96" height="80" rx="6" fill="var(--box-bg)" stroke="var(--box-border)" stroke-width="1"/>
+      <rect x="-40" y="-32" width="80" height="64" rx="3" fill="none" stroke="var(--border)" stroke-width="0.6"/>
+      <circle cx="0" cy="-6" r="12" fill="none" stroke="var(--text-tertiary)" stroke-width="1" opacity="0.4"/>
+      <circle cx="0" cy="-6" r="6" fill="none" stroke="var(--text-tertiary)" stroke-width="0.8" opacity="0.25"/>
+      <rect x="-28" y="16" width="56" height="2.5" rx="1.25" fill="var(--border)"/>
+      <rect x="-28" y="23" width="36" height="2.5" rx="1.25" fill="var(--border-subtle)"/>
+      <text x="0" y="-2" text-anchor="middle" fill="var(--text-tertiary)" font-family="system-ui, sans-serif" font-size="11" opacity="0.3">?</text>
     </g>
 
     <!-- 右侧驾驶舱 -->
-    <g transform="translate(300, 0)">
-      <rect x="-52" y="-44" width="104" height="88" rx="6" fill="var(--box-bg)" stroke="var(--accent-cyan)" stroke-width="1.5" filter="url(#softGlow)"/>
-      <rect x="-44" y="-36" width="88" height="72" rx="3" fill="none" stroke="var(--box-inner)" stroke-width="1"/>
-      <circle cx="-18" cy="-10" r="9" fill="none" stroke="var(--accent-cyan)" stroke-width="1" opacity="0.6"/>
-      <circle cx="-18" cy="-10" r="4.5" fill="var(--accent-cyan)" opacity="0.12" filter="url(#particleGlow)"/>
-      <rect x="5" y="-18" width="24" height="2" rx="1" fill="var(--accent-cyan)" opacity="0.4"/>
-      <rect x="5" y="-11" width="19" height="2" rx="1" fill="var(--accent-cyan-light)" opacity="0.3"/>
-      <rect x="5" y="-4" width="14" height="2" rx="1" fill="var(--accent-cyan)" opacity="0.2"/>
-      <circle cx="-28" cy="20" r="2.2" fill="#10b981" opacity="0.85" filter="url(#particleGlow)"/>
-      <circle cx="-14" cy="20" r="2.2" fill="var(--accent-cyan)" opacity="0.55"/>
-      <circle cx="0" cy="20" r="2.2" fill="var(--accent-cyan-light)" opacity="0.45"/>
-      <circle cx="14" cy="20" r="2.2" fill="var(--accent-amber)" opacity="0.45"/>
-      <circle cx="28" cy="20" r="2.2" fill="var(--accent-amber-light)" opacity="0.35"/>
+    <g transform="translate(280, 0)">
+      <rect x="-48" y="-40" width="96" height="80" rx="6" fill="var(--box-bg)" stroke="var(--cyan)" stroke-width="1.5" filter="url(#glow)"/>
+      <rect x="-40" y="-32" width="80" height="64" rx="3" fill="none" stroke="var(--border)" stroke-width="0.6"/>
+      <circle cx="-16" cy="-8" r="8" fill="none" stroke="var(--cyan)" stroke-width="1" opacity="0.5"/>
+      <circle cx="-16" cy="-8" r="4" fill="var(--cyan)" opacity="0.1"/>
+      <rect x="4" y="-16" width="22" height="2" rx="1" fill="var(--cyan)" opacity="0.35"/>
+      <rect x="4" y="-10" width="17" height="2" rx="1" fill="var(--cyan-light)" opacity="0.25"/>
+      <rect x="4" y="-4" width="12" height="2" rx="1" fill="var(--cyan)" opacity="0.15"/>
+      <circle cx="-26" cy="18" r="2" fill="#10b981" opacity="0.8"/>
+      <circle cx="-13" cy="18" r="2" fill="var(--cyan)" opacity="0.5"/>
+      <circle cx="0" cy="18" r="2" fill="var(--cyan-light)" opacity="0.4"/>
+      <circle cx="13" cy="18" r="2" fill="var(--amber)" opacity="0.4"/>
+      <circle cx="26" cy="18" r="2" fill="var(--amber-light)" opacity="0.3"/>
     </g>
 
     <!-- 桥 -->
-    <path d="M -248 12 Q 0 -68 248 12" fill="none" stroke="url(#bridgeMetal)" stroke-width="2.5" filter="url(#softGlow)"/>
-    <path d="M -248 12 Q 0 -68 248 12" fill="none" stroke="var(--accent-cyan)" stroke-width="0.8" opacity="0.5"/>
+    <path d="M -232 10 Q 0 -60 232 10" fill="none" stroke="var(--cyan-glow)" stroke-width="4"/>
+    <path d="M -232 10 Q 0 -60 232 10" fill="none" stroke="var(--cyan)" stroke-width="1.2" opacity="0.4"/>
 
     <!-- 悬索 -->
-    <line x1="-170" y1="12" x2="-135" y2="-26" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="-115" y1="12" x2="-85" y2="-40" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="-58" y1="12" x2="-38" y2="-48" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="0" y1="12" x2="0" y2="-52" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="58" y1="12" x2="38" y2="-48" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="115" y1="12" x2="85" y2="-40" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="170" y1="12" x2="135" y2="-26" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
+    <line x1="-155" y1="10" x2="-125" y2="-22" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
+    <line x1="-105" y1="10" x2="-80" y2="-35" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
+    <line x1="-52" y1="10" x2="-35" y2="-42" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
+    <line x1="0" y1="10" x2="0" y2="-46" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
+    <line x1="52" y1="10" x2="35" y2="-42" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
+    <line x1="105" y1="10" x2="80" y2="-35" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
+    <line x1="155" y1="10" x2="125" y2="-22" stroke="var(--box-border)" stroke-width="0.7" opacity="0.35"/>
 
     <!-- 流动粒子 -->
-    <circle cx="-150" cy="0" r="2.2" fill="var(--accent-cyan)" opacity="0.75" filter="url(#particleGlow)">
-      <animate attributeName="cx" values="-150;-75;0;75;150" dur="4s" repeatCount="indefinite"/>
-      <animate attributeName="cy" values="0;-26;-40;-26;0" dur="4s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.75;0.25;0.25;0.25;0.75" dur="4s" repeatCount="indefinite"/>
+    <circle cx="-140" cy="0" r="2" fill="var(--cyan)" opacity="0.6">
+      <animate attributeName="cx" values="-140;-70;0;70;140" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="0;-22;-35;-22;0" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0.2;0.2;0.2;0.6" dur="4s" repeatCount="indefinite"/>
     </circle>
-    <circle cx="-100" cy="-8" r="1.8" fill="var(--accent-cyan-light)" opacity="0.55" filter="url(#particleGlow)">
-      <animate attributeName="cx" values="-100;-33;33;100" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
-      <animate attributeName="cy" values="-8;-33;-33;-8" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
-      <animate attributeName="opacity" values="0.55;0.15;0.15;0.55" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
+    <circle cx="-90" cy="-6" r="1.6" fill="var(--cyan-light)" opacity="0.45">
+      <animate attributeName="cx" values="-90;-30;30;90" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
+      <animate attributeName="cy" values="-6;-28;-28;-6" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
+      <animate attributeName="opacity" values="0.45;0.15;0.15;0.45" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
     </circle>
-    <circle cx="-50" cy="-18" r="1.6" fill="var(--accent-amber)" opacity="0.45" filter="url(#particleGlow)">
-      <animate attributeName="cx" values="-50;0;50" dur="3s" repeatCount="indefinite" begin="1.4s"/>
-      <animate attributeName="cy" values="-18;-44;-18" dur="3s" repeatCount="indefinite" begin="1.4s"/>
-      <animate attributeName="opacity" values="0.45;0.15;0.45" dur="3s" repeatCount="indefinite" begin="1.4s"/>
+    <circle cx="-45" cy="-14" r="1.4" fill="var(--amber)" opacity="0.35">
+      <animate attributeName="cx" values="-45;0;45" dur="3s" repeatCount="indefinite" begin="1.4s"/>
+      <animate attributeName="cy" values="-14;-36;-14" dur="3s" repeatCount="indefinite" begin="1.4s"/>
+      <animate attributeName="opacity" values="0.35;0.12;0.35" dur="3s" repeatCount="indefinite" begin="1.4s"/>
     </circle>
 
-    <!-- 底部线 -->
-    <line x1="-320" y1="46" x2="320" y2="46" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <line x1="-220" y1="52" x2="220" y2="52" stroke="var(--border-faint)" stroke-width="0.5" opacity="0.4"/>
+    <!-- 底部基准线 -->
+    <line x1="-300" y1="42" x2="300" y2="42" stroke="var(--border)" stroke-width="0.6"/>
   </g>
 
-  <!-- ====== 品牌文字 ====== -->
-  <g transform="translate(640, 370)">
+  <!-- ====== 品牌文字：无渐变，纯色 ====== -->
+  <g transform="translate(640, 340)">
     <!-- OPEN -->
-    <text x="-258" y="0"
+    <text x="-248" y="0"
           font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-          font-size="76"
+          font-size="72"
           font-weight="800"
-          letter-spacing="5"
-          fill="url(#cyanGrad)"
-          filter="url(#softGlow)">OPEN</text>
-    <text x="-258" y="0"
-          font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-          font-size="76"
-          font-weight="800"
-          letter-spacing="5"
-          fill="var(--accent-cyan)"
-          opacity="0.12"
-          filter="url(#bloom)">OPEN</text>
+          letter-spacing="6"
+          fill="var(--cyan)">OPEN</text>
 
     <!-- BRIGE -->
-    <text x="-6" y="0"
+    <text x="-4" y="0"
           font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-          font-size="76"
+          font-size="72"
           font-weight="800"
-          letter-spacing="5"
-          fill="url(#amberGrad)"
-          filter="url(#softGlow)">BRIGE</text>
-    <text x="-6" y="0"
-          font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-          font-size="76"
-          font-weight="800"
-          letter-spacing="5"
-          fill="var(--accent-amber)"
-          opacity="0.12"
-          filter="url(#bloom)">BRIGE</text>
+          letter-spacing="6"
+          fill="var(--amber)">BRIGE</text>
 
-    <!-- 下划线 -->
-    <line x1="-290" y1="18" x2="290" y2="18" stroke="var(--border-subtle)" stroke-width="1.2"/>
-    <line x1="-210" y1="24" x2="210" y2="24" stroke="var(--border-faint)" stroke-width="0.6" opacity="0.4"/>
+    <!-- 精密下划线 -->
+    <line x1="-280" y1="18" x2="280" y2="18" stroke="var(--border)" stroke-width="1"/>
+    <line x1="-200" y1="24" x2="200" y2="24" stroke="var(--border-subtle)" stroke-width="0.5"/>
 
     <!-- 版本号 -->
-    <text x="300" y="-38"
+    <text x="290" y="-36"
           font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
           font-size="12"
-          font-weight="400"
-          fill="var(--text-muted)"
-          letter-spacing="1">v0.1</text>
+          fill="var(--text-tertiary)">v0.1</text>
   </g>
 
   <!-- ====== 标语 ====== -->
-  <g transform="translate(640, 422)">
+  <g transform="translate(640, 390)">
     <text x="0" y="0"
           text-anchor="middle"
           font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="13"
+          font-size="12"
           font-weight="400"
           letter-spacing="4"
-          fill="var(--text-secondary)"
-          opacity="0.85">AGENT IS A BLACK BOX. OPENBRIGE IS THE COCKPIT.</text>
+          fill="var(--text-secondary)">AGENT IS A BLACK BOX. OPENBRIGE IS THE COCKPIT.</text>
   </g>
 
-  <!-- ====== 底部标签 ====== -->
-  <g transform="translate(640, 465)" opacity="0.5">
-    <rect x="-250" y="-10" width="78" height="20" rx="10" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <text x="-211" y="4"
-          text-anchor="middle"
-          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="8"
-          font-weight="500"
-          letter-spacing="1"
-          fill="var(--text-secondary)">LOCAL-FIRST</text>
+  <!-- ====== 底部标签：极简 pill ====== -->
+  <g transform="translate(640, 430)" opacity="0.45">
+    <rect x="-248" y="-10" width="76" height="20" rx="10" fill="none" stroke="var(--border)" stroke-width="0.7"/>
+    <text x="-210" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="500" letter-spacing="0.5" fill="var(--text-secondary)">LOCAL-FIRST</text>
 
-    <rect x="-158" y="-10" width="78" height="20" rx="10" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <text x="-119" y="4"
-          text-anchor="middle"
-          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="8"
-          font-weight="500"
-          letter-spacing="1"
-          fill="var(--text-secondary)">OPEN SOURCE</text>
+    <rect x="-158" y="-10" width="76" height="20" rx="10" fill="none" stroke="var(--border)" stroke-width="0.7"/>
+    <text x="-120" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="500" letter-spacing="0.5" fill="var(--text-secondary)">OPEN SOURCE</text>
 
-    <rect x="-66" y="-10" width="64" height="20" rx="10" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <text x="-34" y="4"
-          text-anchor="middle"
-          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="8"
-          font-weight="500"
-          letter-spacing="1"
-          fill="var(--text-secondary)">AGPL-3.0</text>
+    <rect x="-68" y="-10" width="62" height="20" rx="10" fill="none" stroke="var(--border)" stroke-width="0.7"/>
+    <text x="-37" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="500" letter-spacing="0.5" fill="var(--text-secondary)">AGPL-3.0</text>
 
-    <rect x="12" y="-10" width="70" height="20" rx="10" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <text x="47" y="4"
-          text-anchor="middle"
-          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="8"
-          font-weight="500"
-          letter-spacing="1"
-          fill="var(--text-secondary)">TYPESCRIPT</text>
+    <rect x="10" y="-10" width="68" height="20" rx="10" fill="none" stroke="var(--border)" stroke-width="0.7"/>
+    <text x="44" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="500" letter-spacing="0.5" fill="var(--text-secondary)">TYPESCRIPT</text>
 
-    <rect x="96" y="-10" width="70" height="20" rx="10" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <text x="131" y="4"
-          text-anchor="middle"
-          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="8"
-          font-weight="500"
-          letter-spacing="1"
-          fill="var(--text-secondary)">WEBSOCKET</text>
+    <rect x="92" y="-10" width="68" height="20" rx="10" fill="none" stroke="var(--border)" stroke-width="0.7"/>
+    <text x="126" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="500" letter-spacing="0.5" fill="var(--text-secondary)">WEBSOCKET</text>
 
-    <rect x="180" y="-10" width="64" height="20" rx="10" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
-    <text x="212" y="4"
-          text-anchor="middle"
-          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
-          font-size="8"
-          font-weight="500"
-          letter-spacing="1"
-          fill="var(--text-secondary)">WORKTREE</text>
+    <rect x="174" y="-10" width="62" height="20" rx="10" fill="none" stroke="var(--border)" stroke-width="0.7"/>
+    <text x="205" y="4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="500" letter-spacing="0.5" fill="var(--text-secondary)">WORKTREE</text>
   </g>
 
-  <!-- ====== 四角精密刻度 ====== -->
-  <g stroke="var(--corner-color)" stroke-width="0.8" fill="none" opacity="0.3">
-    <path d="M 44 44 L 44 66 M 44 44 L 66 44"/>
-    <circle cx="44" cy="44" r="1.5" fill="var(--corner-color)" stroke="none"/>
-    <path d="M 1236 44 L 1236 66 M 1236 44 L 1214 44"/>
-    <circle cx="1236" cy="44" r="1.5" fill="var(--corner-color)" stroke="none"/>
-    <path d="M 44 516 L 44 494 M 44 516 L 66 516"/>
-    <circle cx="44" cy="516" r="1.5" fill="var(--corner-color)" stroke="none"/>
-    <path d="M 1236 516 L 1236 494 M 1236 516 L 1214 516"/>
-    <circle cx="1236" cy="516" r="1.5" fill="var(--corner-color)" stroke="none"/>
+  <!-- ====== 四角刻度 ====== -->
+  <g stroke="var(--border)" stroke-width="0.7" fill="none" opacity="0.25">
+    <path d="M 40 40 L 40 60 M 40 40 L 60 40"/>
+    <circle cx="40" cy="40" r="1.5" fill="var(--border)" stroke="none"/>
+    <path d="M 1240 40 L 1240 60 M 1240 40 L 1220 40"/>
+    <circle cx="1240" cy="40" r="1.5" fill="var(--border)" stroke="none"/>
+    <path d="M 40 480 L 40 460 M 40 480 L 60 480"/>
+    <circle cx="40" cy="480" r="1.5" fill="var(--border)" stroke="none"/>
+    <path d="M 1240 480 L 1240 460 M 1240 480 L 1220 480"/>
+    <circle cx="1240" cy="480" r="1.5" fill="var(--border)" stroke="none"/>
   </g>
 
   <!-- 边缘线框 -->
-  <rect x="20" y="20" width="1240" height="520" rx="3" fill="none" stroke="var(--border-subtle)" stroke-width="0.8" opacity="0.4"/>
+  <rect x="16" y="16" width="1248" height="488" rx="2" fill="none" stroke="var(--border)" stroke-width="0.6" opacity="0.3"/>
 </svg>
