@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="https://raw.githubusercontent.com/vincent-zhi/OpenBrige/main/docs/assets/banner.svg" alt="OpenBrige" width="100%" />
+<img src="https://raw.gitmirror.com/vincent-zhi/OpenBrige/main/docs/assets/banner.svg" alt="OpenBrige" width="100%" />
 
 <br />
 
@@ -31,7 +31,7 @@ No cloud required. No vendor lock-in. No API keys.
 
 无需云端。无供应商锁定。无需 API 密钥。
 
-<img src="https://raw.githubusercontent.com/vincent-zhi/OpenBrige/main/docs/assets/architecture.svg" alt="Architecture" width="100%" />
+<img src="https://raw.gitmirror.com/vincent-zhi/OpenBrige/main/docs/assets/architecture.svg" alt="Architecture" width="100%" />
 
 **Monitor sessions, review diffs, manage worktrees, and send commands — all from your phone or browser.**
 
