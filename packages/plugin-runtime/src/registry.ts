@@ -1,13 +1,43 @@
+import path from 'node:path';
+import fs from 'node:fs';
 import type { Plugin, NotificationProvider, NotificationMessage, AgentProfile, PluginEventPayload } from '@openbrige/shared-types';
+
+interface RegisteredAction {
+  id: string;
+  label: string;
+  text: string;
+  icon?: string;
+  pluginId: string;
+  applicableStatuses?: string[];
+}
 
 export class PluginRegistry {
   private plugins = new Map<string, Plugin>();
   private profiles = new Map<string, AgentProfile>();
   private notificationProviders = new Map<string, NotificationProvider>();
+  private actions = new Map<string, RegisteredAction>();
   private eventHandlers: ((sessionId: string, payload: PluginEventPayload) => void)[] = [];
 
   registerPlugin(plugin: Plugin): void {
     this.plugins.set(plugin.manifest.id, plugin);
+
+    if (plugin.manifest.type === 'action' && plugin.manifest.entry) {
+      // Load action definitions from the plugin directory
+      try {
+        const actionPath = path.join(plugin.basePath, 'actions.json');
+        if (fs.existsSync(actionPath)) {
+          const content = fs.readFileSync(actionPath, 'utf-8');
+          const actions = JSON.parse(content);
+          if (Array.isArray(actions)) {
+            for (const action of actions) {
+              this.registerAction({ ...action, pluginId: plugin.manifest.id });
+            }
+          }
+        }
+      } catch {
+        // Failed to load actions
+      }
+    }
   }
 
   getPlugins(): Plugin[] {
@@ -40,6 +70,20 @@ export class PluginRegistry {
 
   getNotificationProvider(id: string): NotificationProvider | undefined {
     return this.notificationProviders.get(id);
+  }
+
+  registerAction(action: RegisteredAction): void {
+    this.actions.set(action.id, action);
+  }
+
+  getActions(status?: string): RegisteredAction[] {
+    const all = Array.from(this.actions.values());
+    if (!status) return all;
+    return all.filter(a => !a.applicableStatuses || a.applicableStatuses.includes(status));
+  }
+
+  unregisterAction(id: string): void {
+    this.actions.delete(id);
   }
 
   async sendNotification(message: NotificationMessage): Promise<void> {

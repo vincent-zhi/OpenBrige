@@ -1,5 +1,4 @@
 import os from 'node:os';
-import type { DiagnosticResult } from '@openbrige/shared-types';
 import { generateQRCodeASCII } from '@openbrige/network-doctor';
 
 function getLocalIPs(): string[] {
@@ -24,47 +23,68 @@ function statusIcon(status: 'ok' | 'warning' | 'error'): string {
   }
 }
 
-export interface BannerOptions {
-  port: number;
-  host: string;
-  profileName?: string;
-  diagnostics?: DiagnosticResult[];
+export interface DiagnosticResult {
+  name: string;
+  status: 'ok' | 'warning' | 'error';
+  message: string;
+  details?: string;
 }
 
-export function printBanner(options: BannerOptions): void {
-  const { port, host, profileName, diagnostics } = options;
+export function printBanner(options: {
+  port: number;
+  host: string;
+  lanIP?: string;
+  profiles?: string[];
+  sandboxEnabled?: boolean;
+  diagnostics?: DiagnosticResult[];
+}): void {
+  const { port, host, lanIP, profiles, sandboxEnabled, diagnostics } = options;
+
   const localIPs = getLocalIPs();
-  const lanIP = localIPs[0];
+  const detectedLanIP = lanIP ?? localIPs[0];
 
   console.log();
-  console.log('  OpenBrige');
-  console.log('  \u2500'.repeat(24));
-  console.log(`  \u2713 Host Server started on ${host}:${port}`);
-  console.log('  \u2713 Web UI available');
+  console.log('OpenBrige');
+  console.log('\u2500'.repeat(24));
 
-  if (profileName) {
-    console.log(`  \u2713 Profile: ${profileName}`);
+  // Status lines with ✓ / ✗
+  console.log('\u2713 Host Server started');
+  console.log('\u2713 Web UI available');
+  console.log(detectedLanIP ? '\u2713 Local network detected' : '\u2717 Local network not detected');
+
+  if (profiles && profiles.length > 0) {
+    console.log(`\u2713 Profiles loaded: ${profiles.join(', ')}`);
+  } else {
+    console.log('\u2717 No profiles loaded');
   }
 
-  console.log();
-  console.log(`  Open on this computer: http://localhost:${port}`);
+  if (sandboxEnabled) {
+    console.log('\u2713 Worktree sandbox enabled');
+  } else {
+    console.log('\u2717 Worktree sandbox disabled');
+  }
 
-  if (lanIP) {
-    console.log(`  Open on your phone:    http://${lanIP}:${port}`);
-    console.log();
-    console.log('  Scan QR code to connect from mobile:');
-    console.log();
-    const qr = generateQRCodeASCII(`http://${lanIP}:${port}`);
-    for (const line of qr.split('\n')) {
-      console.log(`    ${line}`);
+  // Diagnostics
+  if (diagnostics && diagnostics.length > 0) {
+    for (const d of diagnostics) {
+      const icon = d.status === 'ok' ? '\u2713' : d.status === 'warning' ? '\u26A0' : '\u2717';
+      console.log(`${icon} ${d.name}: ${d.message}`);
     }
   }
 
-  if (diagnostics && diagnostics.length > 0) {
+  console.log();
+  console.log('Open on this computer:');
+  console.log(`  http://localhost:${port}`);
+
+  if (detectedLanIP) {
     console.log();
-    for (const d of diagnostics) {
-      const icon = statusIcon(d.status);
-      console.log(`  ${icon} ${d.name}: ${d.message}`);
+    console.log('Open on your phone:');
+    console.log(`  https://${detectedLanIP}:${port}`);
+    console.log();
+    console.log('Scan QR:');
+    const qr = generateQRCodeASCII(`https://${detectedLanIP}:${port}`);
+    for (const line of qr.split('\n')) {
+      console.log(`  ${line}`);
     }
   }
 

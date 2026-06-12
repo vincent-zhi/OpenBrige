@@ -23,6 +23,7 @@ interface ClientTestResult {
   ok: boolean;
   latencyMs: number;
   error?: string;
+  message?: string;
 }
 
 async function testApiPing(): Promise<ClientTestResult> {
@@ -67,8 +68,55 @@ async function testDnsResolution(): Promise<ClientTestResult> {
   }
 }
 
+async function testHttpsCert(): Promise<ClientTestResult> {
+  const start = Date.now();
+  try {
+    const url = `${window.location.protocol}//${window.location.hostname}:${window.location.port || (window.location.protocol === 'https:' ? '443' : '80')}/api/health`;
+    const res = await fetch(url, { mode: 'cors' });
+    const isHttps = window.location.protocol === 'https:';
+    return { name: 'HTTPS Certificate', ok: res.ok, latencyMs: Date.now() - start, message: isHttps ? 'HTTPS certificate valid' : 'Using HTTP (no HTTPS)' };
+  } catch (e) {
+    return { name: 'HTTPS Certificate', ok: false, latencyMs: -1, message: 'HTTPS certificate check failed' };
+  }
+}
+
+async function testMdnsFallback(): Promise<ClientTestResult> {
+  const start = Date.now();
+  try {
+    const res = await fetch('http://openbrige.local:7443/api/health', { mode: 'no-cors', signal: AbortSignal.timeout(3000) });
+    return { name: 'mDNS Fallback', ok: true, latencyMs: Date.now() - start, message: 'mDNS resolution works' };
+  } catch {
+    return { name: 'mDNS Fallback', ok: false, latencyMs: -1, message: 'mDNS not available (use IP address instead)' };
+  }
+}
+
+async function testLanFallback(): Promise<ClientTestResult> {
+  const currentHost = window.location.hostname;
+  if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(currentHost)) {
+    return { name: 'LAN IP Fallback', ok: true, latencyMs: 0, message: `Connected via LAN IP: ${currentHost}` };
+  }
+  return { name: 'LAN IP Fallback', ok: false, latencyMs: -1, message: 'Not connected via LAN IP' };
+}
+
+async function testTunnelStatus(): Promise<ClientTestResult> {
+  const start = Date.now();
+  try {
+    const res = await fetch('/api/connections');
+    if (!res.ok) return { name: 'Tunnel Status', ok: false, latencyMs: -1, message: 'Cannot check tunnel status' };
+    const data = await res.json();
+    const connections = data.connections ?? [];
+    const active = connections.filter((c: { status: string }) => c.status === 'connected');
+    if (active.length > 0) {
+      return { name: 'Tunnel Status', ok: true, latencyMs: Date.now() - start, message: `${active.length} active tunnel(s)` };
+    }
+    return { name: 'Tunnel Status', ok: false, latencyMs: Date.now() - start, message: 'No active tunnels' };
+  } catch {
+    return { name: 'Tunnel Status', ok: false, latencyMs: -1, message: 'Tunnel status unavailable' };
+  }
+}
+
 async function runClientTests(): Promise<ClientTestResult[]> {
-  return Promise.all([testApiPing(), testWebSocket(), testDnsResolution()]);
+  return Promise.all([testApiPing(), testWebSocket(), testDnsResolution(), testHttpsCert(), testMdnsFallback(), testLanFallback(), testTunnelStatus()]);
 }
 
 export function ConnectionDoctor() {
@@ -223,7 +271,7 @@ export function ConnectionDoctor() {
                             </span>
                           </div>
                           <p className="text-sm text-gray-400 mt-0.5">
-                            {result.ok ? 'OK' : 'Failed'}
+                            {result.message ?? (result.ok ? 'OK' : 'Failed')}
                           </p>
                           {result.error && (
                             <p className="text-xs text-red-400 mt-1">{result.error}</p>

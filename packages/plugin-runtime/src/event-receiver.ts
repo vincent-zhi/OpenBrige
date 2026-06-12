@@ -1,9 +1,48 @@
 import { createServer, type Server } from 'node:http';
+import { createInterface, type Interface } from 'node:readline';
 
 export interface EventReceiverOptions {
   port: number;
   host?: string;
   onEvent: (sessionId: string, payload: { pluginId: string; eventType: string; data: Record<string, unknown> }) => void;
+}
+
+export class StdioEventReceiver {
+  private rl: Interface | null = null;
+  private running = false;
+
+  start(options: {
+    onEvent: (sessionId: string, payload: { pluginId: string; eventType: string; data: Record<string, unknown> }) => void;
+    input?: NodeJS.ReadableStream;
+  }): void {
+    this.running = true;
+    this.rl = createInterface({
+      input: options.input ?? process.stdin,
+      crlfDelay: Infinity,
+    });
+
+    this.rl.on('line', (line) => {
+      if (!this.running) return;
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.session_id && parsed.type) {
+          options.onEvent(parsed.session_id, {
+            pluginId: parsed.plugin_id ?? 'stdio',
+            eventType: parsed.type,
+            data: parsed.data ?? {},
+          });
+        }
+      } catch {
+        // Not JSON, skip
+      }
+    });
+  }
+
+  stop(): void {
+    this.running = false;
+    this.rl?.close();
+    this.rl = null;
+  }
 }
 
 export class PluginEventReceiver {

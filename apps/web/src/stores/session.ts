@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { BridgeSession, BridgeEvent, SmartCard } from '@openbrige/shared-types';
+import { idbPut } from '../lib/indexeddb';
 
 interface SessionState {
   sessions: BridgeSession[];
@@ -27,12 +28,16 @@ export const useSessionStore = create<SessionState>((set) => ({
   setSessions: (sessions) => set({ sessions }),
 
   updateSession: (session) =>
-    set((state) => ({
-      sessions: state.sessions.map((s) => (s.id === session.id ? session : s)),
-    })),
+    set((state) => {
+      idbPut('sessions', session).catch(() => {});
+      return {
+        sessions: state.sessions.map((s) => (s.id === session.id ? session : s)),
+      };
+    }),
 
   addEvent: (sessionId, event) =>
     set((state) => {
+      idbPut('events', event).catch(() => {});
       const MAX_EVENTS = 5000;
       const next = new Map(state.events);
       const list = next.get(sessionId) ?? [];

@@ -28,7 +28,25 @@ export function createWsHandler(server: Server, deps: WsHandlerDeps): {
   const { store, validTokens } = deps;
   const subscribers = new Map<string, Set<Subscriber>>();
 
-  const wss = new WebSocketServer({ server, path: '/ws', verifyClient: (info, cb) => {
+  const wss = new WebSocketServer({
+    server,
+    path: '/ws',
+    perMessageDeflate: {
+      zlibDeflateOptions: {
+        chunkSize: 1024,
+        memLevel: 7,
+        level: 3,
+      },
+      zlibInflateOptions: {
+        chunkSize: 10 * 1024,
+      },
+      clientNoContextTakeover: true,
+      serverNoContextTakeover: true,
+      serverMaxWindowBits: 10,
+      concurrencyLimit: 10,
+      threshold: 256,
+    },
+    verifyClient: (info, cb) => {
     // If pairing is enabled, check for valid token
     if (validTokens && validTokens.size > 0) {
       const url = new URL(info.req.url ?? '', `http://${info.req.headers.host ?? 'localhost'}`);

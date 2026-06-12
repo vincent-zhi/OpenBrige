@@ -1,4 +1,4 @@
-import { networkInterfaces } from 'node:os';
+import { networkInterfaces, hostname } from 'node:os';
 import { createConnection } from 'node:net';
 import { platform, release, arch } from 'node:os';
 import type { DiagnosticResult } from '@openbrige/shared-types';
@@ -70,10 +70,26 @@ export class NetworkDoctor {
     const timeoutMs = options?.timeoutMs ?? 2000;
     const results: DiagnosticResult[] = [];
 
+    // mDNS name detection
+    let mdnsName = '';
+    try {
+      const hostnameVal = hostname();
+      mdnsName = `${hostnameVal.toLowerCase().replace(/[^a-z0-9]/g, '-')}.local`;
+    } catch {
+      mdnsName = '';
+    }
+
     results.push(this.checkPlatform());
 
     const ipResults = this.checkLocalIP();
     results.push(ipResults);
+
+    results.push({
+      name: 'mDNS Name',
+      status: mdnsName ? 'ok' : 'warning',
+      message: mdnsName ? `✓ ${mdnsName}` : 'mDNS name not available',
+      details: mdnsName ? `Accessible as ${mdnsName} on local network` : undefined,
+    });
 
     const portResult = await this.checkPortAvailability(host, port, timeoutMs);
     results.push(portResult);

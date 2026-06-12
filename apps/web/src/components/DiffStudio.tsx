@@ -169,6 +169,23 @@ function DiffFileView({ file, isExpanded, onToggle }: DiffFileViewProps) {
         </span>
       </button>
 
+      {!isExpanded && file.patch && (
+        <div className="px-3 py-2 bg-bg/50 border-t border-border">
+          <pre className="text-xs font-mono overflow-hidden max-h-16 leading-4">
+            {file.patch.split('\n').slice(0, 5).map((line, i) => {
+              let color = 'text-gray-500';
+              if (line.startsWith('+') && !line.startsWith('+++')) color = 'text-green-500/50';
+              else if (line.startsWith('-') && !line.startsWith('---')) color = 'text-red-500/50';
+              else if (line.startsWith('@@')) color = 'text-purple-500/50';
+              return (
+                <div key={i} className={clsx(color, 'whitespace-pre truncate')}>{line}</div>
+              );
+            })}
+          </pre>
+          <span className="text-xs text-gray-600">Click to expand full diff</span>
+        </div>
+      )}
+
       {isExpanded && file.patch && (
         <div className="border-t border-border">
           <pre className="text-xs font-mono overflow-x-auto p-3 bg-bg leading-5">

@@ -173,6 +173,40 @@ export function createRoutes(deps: RouteDeps): Hono {
     await next();
   });
 
+  // ── Policy check for sensitive actions ──────────────────────
+
+  async function checkPolicy(action: string, c: { json: (body: unknown, status?: number) => Response; req: { header(name: string): string | undefined } }): Promise<boolean> {
+    // Check if any policy plugin blocks this action
+    const plugins = pluginRegistry.getPlugins().filter(p => p.manifest.type === 'policy');
+    for (const plugin of plugins) {
+      try {
+        const policyModule = await import('node:path').then(path =>
+          import('node:fs').then(fs => {
+            const policyPath = path.join(plugin.basePath, 'policy.json');
+            if (fs.existsSync(policyPath)) {
+              const content = fs.readFileSync(policyPath, 'utf-8');
+              return JSON.parse(content);
+            }
+            return null;
+          })
+        );
+        if (policyModule?.rules) {
+          const rule = policyModule.rules.find((r: { action: string }) => r.action === action);
+          if (rule && rule.requireConfirmation) {
+            const confirmed = c.req.header('x-confirm-action') === action;
+            if (!confirmed) {
+              c.json({ error: `Action "${action}" requires confirmation. Send X-Confirm-Action header.`, requiresConfirmation: true, action }, 403);
+              return false;
+            }
+          }
+        }
+      } catch {
+        // Policy check failed, allow by default
+      }
+    }
+    return true;
+  }
+
   // ── Protected routes ───────────────────────────────────────
 
   // GET /api/sessions
@@ -238,6 +272,8 @@ export function createRoutes(deps: RouteDeps): Hono {
   // POST /api/sessions/:id/stop
   app.post('/api/sessions/:id/stop', async (c) => {
     const id = c.req.param('id');
+    const policyOk = await checkPolicy('session.stop', c);
+    if (!policyOk) return;
     try {
       await supervisor.stop(id);
       return c.json({ ok: true });
@@ -357,6 +393,13 @@ export function createRoutes(deps: RouteDeps): Hono {
       ? plugins.filter((p) => p.manifest.type === type)
       : plugins;
     return c.json({ plugins: filtered });
+  });
+
+  // GET /api/actions
+  app.get('/api/actions', (c) => {
+    const status = c.req.query('status');
+    const actions = pluginRegistry.getActions(status);
+    return c.json({ actions });
   });
 
   return app;
