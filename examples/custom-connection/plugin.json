@@ -1,0 +1,7 @@
+{
+  "id": "my-custom-connection",
+  "name": "My Custom Connection",
+  "version": "1.0.0",
+  "type": "connection",
+  "description": "Example custom connection provider"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "diff-studio",
+  "name": "Diff Studio",
+  "version": "0.1.0",
+  "type": "ui-panel",
+  "entry": "index.html",
+  "description": "Enhanced diff viewer with file grouping and syntax highlighting",
+  "permissions": ["read:diff", "read:files"],
+  "placement": ["session-detail"]
+}

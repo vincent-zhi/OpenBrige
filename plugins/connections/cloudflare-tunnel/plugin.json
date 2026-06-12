@@ -1,0 +1,7 @@
+{
+  "id": "cloudflare-tunnel",
+  "name": "Cloudflare Tunnel",
+  "version": "0.1.0",
+  "type": "connection",
+  "description": "Tunnel via Cloudflare Tunnel (cloudflared)"
+}

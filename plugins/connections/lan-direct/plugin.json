@@ -1,0 +1,7 @@
+{
+  "id": "lan-direct",
+  "name": "LAN Direct",
+  "version": "0.1.0",
+  "type": "connection",
+  "description": "Direct LAN connection via local IP"
+}

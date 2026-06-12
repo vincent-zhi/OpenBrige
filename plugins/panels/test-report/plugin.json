@@ -1,0 +1,10 @@
+{
+  "id": "test-report",
+  "name": "Test Report",
+  "version": "0.1.0",
+  "type": "ui-panel",
+  "entry": "index.html",
+  "description": "Test results dashboard with pass/fail tracking",
+  "permissions": ["read:cards"],
+  "placement": ["session-detail"]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "my-custom-panel",
+  "name": "My Custom Panel",
+  "version": "1.0.0",
+  "type": "ui-panel",
+  "entry": "index.html",
+  "description": "Example custom UI panel for OpenBrige",
+  "permissions": ["read:events"],
+  "placement": ["session-detail"]
+}

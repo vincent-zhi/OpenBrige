@@ -1,0 +1,7 @@
+{
+  "id": "bark",
+  "name": "Bark",
+  "version": "0.1.0",
+  "type": "notification",
+  "description": "Push notifications via Bark (iOS)"
+}

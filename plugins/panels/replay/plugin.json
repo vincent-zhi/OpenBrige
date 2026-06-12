@@ -1,0 +1,10 @@
+{
+  "id": "replay",
+  "name": "Session Replay",
+  "version": "0.1.0",
+  "type": "ui-panel",
+  "entry": "index.html",
+  "description": "Session replay player with speed control",
+  "permissions": ["read:events"],
+  "placement": ["session-detail"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "ntfy",
+  "name": "ntfy.sh",
+  "version": "0.1.0",
+  "type": "notification",
+  "description": "Push notifications via ntfy.sh"
+}

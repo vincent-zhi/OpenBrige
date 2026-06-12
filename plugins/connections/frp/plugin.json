@@ -1,0 +1,7 @@
+{
+  "id": "frp",
+  "name": "FRP Tunnel",
+  "version": "0.1.0",
+  "type": "connection",
+  "description": "Tunnel via FRP (Fast Reverse Proxy)"
+}

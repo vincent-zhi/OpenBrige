@@ -1,0 +1,7 @@
+{
+  "id": "ssh-reverse-tunnel",
+  "name": "SSH Reverse Tunnel",
+  "version": "0.1.0",
+  "type": "connection",
+  "description": "Tunnel via SSH reverse port forwarding"
+}

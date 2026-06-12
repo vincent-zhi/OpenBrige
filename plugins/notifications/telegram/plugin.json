@@ -1,0 +1,7 @@
+{
+  "id": "telegram",
+  "name": "Telegram",
+  "version": "0.1.0",
+  "type": "notification",
+  "description": "Notifications via Telegram Bot"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "webhook",
+  "name": "Webhook",
+  "version": "0.1.0",
+  "type": "notification",
+  "description": "Send notifications to a custom webhook"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "my-custom-notification",
+  "name": "My Custom Notification",
+  "version": "1.0.0",
+  "type": "notification",
+  "description": "Example custom notification provider"
+}

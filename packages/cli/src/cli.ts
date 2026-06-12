@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
+import { exec } from 'node:child_process';
 import { startServer } from '@openbrige/host';
 import { NetworkDoctor } from '@openbrige/network-doctor';
 import { LanDirectProvider } from '@openbrige/connection-manager';
@@ -155,15 +156,33 @@ sessionCmd
 
 sessionCmd
   .command('open')
-  .description('Print session URL to open in browser')
+  .description('Open a session in the browser')
   .argument('<id>', 'Session ID')
   .option('-p, --port <port>', 'Server port', String(DEFAULT_PORT))
   .option('-H, --host <host>', 'Server host', DEFAULT_HOST)
   .action((id: string, opts: { port: string; host: string }) => {
     const port = parseInt(opts.port, 10);
     const h = opts.host === '0.0.0.0' ? 'localhost' : opts.host;
-    const url = `http://${h}:${port}/session/${id}`;
-    console.log(`  Open in browser: ${url}`);
+    const url = `http://${h}:${port}/sessions/${id}`;
+
+    const platform = process.platform;
+    let command: string;
+    if (platform === 'win32') {
+      command = `start ${url}`;
+    } else if (platform === 'darwin') {
+      command = `open ${url}`;
+    } else {
+      command = `xdg-open ${url}`;
+    }
+
+    exec(command, (err) => {
+      if (err) {
+        console.error(`  Error: could not open browser (${err.message})`);
+        console.log(`  Open manually: ${url}`);
+      } else {
+        console.log(`  Opened in browser: ${url}`);
+      }
+    });
   });
 
 // ── profiles ─────────────────────────────────────────────────
@@ -403,6 +422,61 @@ program
     console.log('    .openbrige/plugins/');
     console.log();
     console.log('  Start the server with: openbrige start');
+  });
+
+// ── profile ──────────────────────────────────────────────────
+
+const profileCmd = program
+  .command('profile')
+  .description('Manage agent profiles');
+
+profileCmd
+  .command('list')
+  .description('List agent profiles')
+  .option('-p, --port <port>', 'Server port', String(DEFAULT_PORT))
+  .option('-H, --host <host>', 'Server host', DEFAULT_HOST)
+  .action(async (opts: { port: string; host: string }) => {
+    const port = parseInt(opts.port, 10);
+    try {
+      const data = await apiFetch<{ profiles: AgentProfile[] }>(
+        '/api/profiles',
+        port,
+        opts.host,
+      );
+
+      if (data.profiles.length === 0) {
+        console.log('  No agent profiles found.');
+        console.log('  Add profiles to .openbrige/profiles/');
+        return;
+      }
+
+      console.log();
+      console.log(`  ${'ID'.padEnd(22)} ${'Name'.padEnd(22)} ${'Command'}`);
+      console.log(`  ${'\u2500'.repeat(22)} ${'\u2500'.repeat(22)} ${'\u2500'.repeat(30)}`);
+
+      for (const p of data.profiles) {
+        const id = p.id.length > 20 ? p.id.slice(0, 20) + '..' : p.id.padEnd(20);
+        const name = p.name.length > 20 ? p.name.slice(0, 20) + '..' : p.name.padEnd(20);
+        console.log(`  ${id}  ${name}  ${p.command} ${p.args.join(' ')}`);
+      }
+      console.log();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`  Error: could not connect to server (${message})`);
+      console.error('  Is the server running? Start it with: openbrige start');
+      process.exit(1);
+    }
+  });
+
+// ── update ──────────────────────────────────────────────────
+
+program
+  .command('update')
+  .description('Check for updates')
+  .action(() => {
+    const version = program.version();
+    console.log('Checking for updates...');
+    console.log(`  Current version: ${version}`);
   });
 
 program.parse();

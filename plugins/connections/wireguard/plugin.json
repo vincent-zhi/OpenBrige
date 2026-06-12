@@ -1,0 +1,7 @@
+{
+  "id": "wireguard",
+  "name": "WireGuard",
+  "version": "0.1.0",
+  "type": "connection",
+  "description": "VPN tunnel via WireGuard"
+}

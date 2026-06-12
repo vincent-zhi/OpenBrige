@@ -1,0 +1,10 @@
+{
+  "id": "files",
+  "name": "Files",
+  "version": "0.1.0",
+  "type": "ui-panel",
+  "entry": "index.html",
+  "description": "File change tracker with diff preview",
+  "permissions": ["read:files", "read:diff"],
+  "placement": ["session-detail"]
+}

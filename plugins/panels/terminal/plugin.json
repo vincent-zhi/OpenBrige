@@ -1,0 +1,10 @@
+{
+  "id": "terminal",
+  "name": "Terminal",
+  "version": "0.1.0",
+  "type": "ui-panel",
+  "entry": "index.html",
+  "description": "Terminal output viewer with search and folding",
+  "permissions": ["read:events"],
+  "placement": ["session-detail"]
+}

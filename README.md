@@ -35,19 +35,7 @@ OpenBrige runs on your computer and turns **any local AI coding agent** into a r
 
 No cloud required. No vendor lock-in. No API keys.
 
-```
-┌─────────────────┐      WebSocket / HTTPS       ┌─────────────────┐
-│   Your Phone    │  ◄─────────────────────────►  │   Your Computer │
-│   (Browser)     │         Same Wi-Fi            │  (OpenBrige Host)
-└─────────────────┘                               └────────┬────────┘
-                                                          │
-                    ┌─────────────┬─────────────┬─────────┘
-                    ▼             ▼             ▼
-              ┌─────────┐   ┌─────────┐   ┌─────────┐
-              │  Claude │   │ Codex   │   │  Aider  │
-              │  Code   │   │         │   │         │
-              └─────────┘   └─────────┘   └─────────┘
-```
+<img src="https://raw.githubusercontent.com/vincent-zhi/OpenBrige/main/docs/assets/architecture.svg" alt="Architecture" width="100%" />
 
 **Monitor sessions, review diffs, manage worktrees, and send commands — all from your phone or browser.**
 
