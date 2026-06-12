@@ -1,0 +1,7 @@
+{
+  "id": "my-custom-agent",
+  "name": "My Custom Agent",
+  "version": "1.0.0",
+  "type": "profile",
+  "description": "Example custom agent profile for OpenBrige"
+}

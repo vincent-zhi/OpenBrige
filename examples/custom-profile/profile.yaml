@@ -1,0 +1,25 @@
+command: my-agent
+args: []
+startMode: interactive
+ui:
+  color: "#8b5cf6"
+  icon: "🤖"
+patterns:
+  waitingInput:
+    - regex: "waiting for input|enter command"
+      confidence: 0.8
+  needsAttention:
+    - regex: "confirm\\?|\\[y/n\\]"
+      confidence: 0.9
+  completed:
+    - regex: "done|finished|complete"
+      confidence: 0.7
+quickActions:
+  - id: summarize
+    label: Summarize
+    text: "Summarize current progress"
+    icon: message
+  - id: run-tests
+    label: Run Tests
+    text: "Run the test suite"
+    icon: play

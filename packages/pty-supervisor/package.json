@@ -1,0 +1,26 @@
+{
+  "name": "@openbrige/pty-supervisor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@openbrige/shared-types": "workspace:*",
+    "@openbrige/local-store": "workspace:*",
+    "node-pty": "^1.0.0",
+    "nanoid": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

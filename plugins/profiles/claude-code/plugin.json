@@ -1,0 +1,7 @@
+{
+  "id": "openbrige-profile-claude-code",
+  "name": "Claude Code Profile",
+  "version": "0.1.0",
+  "type": "profile",
+  "description": "Agent profile for Claude Code CLI by Anthropic"
+}

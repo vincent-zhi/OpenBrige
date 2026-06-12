@@ -1,0 +1,31 @@
+{
+  "name": "openbrige",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first web control plane for any AI coding agent",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:host": "pnpm --filter @openbrige/host run dev",
+    "dev:web": "pnpm --filter @openbrige/web run dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "clean": "pnpm -r run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,yaml,yml,md}\" --ignore-path .gitignore"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

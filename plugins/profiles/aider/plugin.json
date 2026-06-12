@@ -1,0 +1,7 @@
+{
+  "id": "openbrige-profile-aider",
+  "name": "Aider Profile",
+  "version": "0.1.0",
+  "type": "profile",
+  "description": "Agent profile for Aider AI pair programming"
+}

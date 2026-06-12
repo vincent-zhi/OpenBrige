@@ -1,0 +1,27 @@
+{
+  "name": "@openbrige/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "openbrige": "./src/cli.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@openbrige/shared-types": "workspace:*",
+    "@openbrige/host": "workspace:*",
+    "@openbrige/network-doctor": "workspace:*",
+    "@openbrige/connection-manager": "workspace:*",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.openbrige/
+.env
+.env.local
+*.log
+coverage/
+.DS_Store
+Thumbs.db

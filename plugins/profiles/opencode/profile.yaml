@@ -1,0 +1,72 @@
+id: opencode
+name: OpenCode
+command: opencode
+args: []
+cwd: "."
+icon: terminal
+
+startup:
+  wait_for_patterns:
+    - ">"
+    - "opencode"
+    - "Ready"
+
+ui:
+  color: green
+
+patterns:
+  waiting_input:
+    - "Do you want to"
+    - "Continue?"
+    - "(y/n)"
+    - "Would you like"
+    - "Should I"
+    - "Proceed?"
+  test_failed:
+    - "test failed"
+    - "Tests failed"
+    - "FAIL "
+    - "AssertionError"
+    - "FAILED"
+  test_passed:
+    - "test passed"
+    - "Tests passed"
+    - "All tests passed"
+    - "PASS"
+    - "All passed"
+  error_detected:
+    - "Error:"
+    - "error TS"
+    - "TypeError:"
+    - "SyntaxError:"
+    - "ReferenceError:"
+    - "Cannot find module"
+    - "Module not found"
+  task_done:
+    - "Done"
+    - "Task complete"
+    - "Completed"
+    - "All done"
+    - "Finished"
+  confirmation_prompt:
+    - "Do you want to proceed"
+    - "Confirm?"
+    - "Is this correct"
+    - "Shall I continue"
+
+quick_actions:
+  summarize:
+    label: Summarize progress
+    text: "Summarize current progress, changed files, test status, and next step."
+  run_tests:
+    label: Run tests
+    text: "Run the relevant tests and explain any failures."
+  stop_editing:
+    label: Stop editing
+    text: "Stop modifying files. Only summarize from now on."
+  show_diff:
+    label: Show diff
+    text: "Show me a summary of all file changes you've made so far."
+  commit_message:
+    label: Generate commit message
+    text: "Generate a conventional commit message for the current changes."

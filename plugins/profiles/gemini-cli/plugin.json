@@ -1,0 +1,7 @@
+{
+  "id": "openbrige-profile-gemini-cli",
+  "name": "Gemini CLI Profile",
+  "version": "0.1.0",
+  "type": "profile",
+  "description": "Agent profile for Google Gemini CLI"
+}

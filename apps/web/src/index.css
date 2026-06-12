@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a3a transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #2a2a3a;
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #3a3a4a;
+  }
+
+  ::selection {
+    background: rgba(99, 102, 241, 0.3);
+  }
+
+  body {
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #root {
+    height: 100vh;
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-bg-surface border border-border rounded-lg;
+  }
+
+  .card-hover {
+    @apply card transition-all duration-200 hover:border-border-hover hover:bg-bg-elevated hover:shadow-lg hover:shadow-black/20;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-accent/50 
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-hover active:bg-accent-muted;
+  }
+
+  .btn-secondary {
+    @apply btn bg-bg-elevated text-gray-300 border border-border hover:bg-bg-hover hover:text-white hover:border-border-hover;
+  }
+
+  .btn-ghost {
+    @apply btn text-gray-400 hover:text-white hover:bg-bg-elevated;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-green-500/20 text-green-400;
+  }
+
+  .badge-error {
+    @apply badge bg-red-500/20 text-red-400;
+  }
+
+  .badge-warning {
+    @apply badge bg-yellow-500/20 text-yellow-400;
+  }
+
+  .badge-info {
+    @apply badge bg-blue-500/20 text-blue-400;
+  }
+
+  .badge-thinking {
+    @apply badge bg-purple-500/20 text-purple-400;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 bg-bg-elevated border border-border rounded-lg text-gray-100 
+           placeholder:text-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 
+           transition-colors duration-200;
+  }
+}

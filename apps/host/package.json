@@ -1,0 +1,44 @@
+{
+  "name": "@openbrige/host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@openbrige/shared-types": "workspace:*",
+    "@openbrige/local-store": "workspace:*",
+    "@openbrige/pty-supervisor": "workspace:*",
+    "@openbrige/workspace-watcher": "workspace:*",
+    "@openbrige/git-diff-engine": "workspace:*",
+    "@openbrige/output-classifier": "workspace:*",
+    "@openbrige/smart-cards": "workspace:*",
+    "@openbrige/worktree-manager": "workspace:*",
+    "@openbrige/connection-manager": "workspace:*",
+    "@openbrige/plugin-runtime": "workspace:*",
+    "@openbrige/network-doctor": "workspace:*",
+    "@openbrige/notification-router": "workspace:*",
+    "@openbrige/session-recorder": "workspace:*",
+    "hono": "^4.0.0",
+    "@hono/node-server": "^1.0.0",
+    "ws": "^8.0.0",
+    "nanoid": "^5.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
