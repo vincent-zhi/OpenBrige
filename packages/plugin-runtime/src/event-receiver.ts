@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'node:http';
-import { createInterface, type Interface } from 'node:readline';
+import { createInterface } from 'node:readline';
+import type { Interface as ReadlineInterface } from 'node:readline';
 
 export interface EventReceiverOptions {
   port: number;
@@ -8,7 +9,7 @@ export interface EventReceiverOptions {
 }
 
 export class StdioEventReceiver {
-  private rl: Interface | null = null;
+  private rl: ReadlineInterface & NodeJS.EventEmitter | null = null;
   private running = false;
 
   start(options: {
@@ -19,9 +20,9 @@ export class StdioEventReceiver {
     this.rl = createInterface({
       input: options.input ?? process.stdin,
       crlfDelay: Infinity,
-    });
+    }) as ReadlineInterface & NodeJS.EventEmitter;
 
-    this.rl.on('line', (line) => {
+    this.rl.on('line', (line: string) => {
       if (!this.running) return;
       try {
         const parsed = JSON.parse(line);

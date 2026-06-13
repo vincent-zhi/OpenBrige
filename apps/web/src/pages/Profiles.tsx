@@ -10,7 +10,7 @@ export function Profiles() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full text-fg-subtle">
         Loading profiles...
       </div>
     );
@@ -19,8 +19,8 @@ export function Profiles() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="px-4 py-3 border-b border-border">
-        <h2 className="text-xl font-semibold text-white">Profiles</h2>
-        <p className="text-sm text-gray-500 mt-1">Available agent configurations</p>
+        <h2 className="text-xl font-semibold text-fg">Profiles</h2>
+        <p className="text-sm text-fg-subtle mt-1">Available agent configurations</p>
       </div>
 
       <div className="p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -41,14 +41,14 @@ export function Profiles() {
                 )}
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-white truncate">{profile.name}</h3>
+                <h3 className="font-semibold text-fg truncate">{profile.name}</h3>
                 {profile.description && (
-                  <p className="text-sm text-gray-400 mt-0.5 line-clamp-2">{profile.description}</p>
+                  <p className="text-sm text-fg-muted mt-0.5 line-clamp-2">{profile.description}</p>
                 )}
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+            <div className="mt-3 flex items-center gap-2 text-xs text-fg-subtle">
               <Terminal size={12} />
               <code className="truncate font-mono">
                 {profile.command} {profile.args.join(' ')}

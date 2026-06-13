@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- 背景 -->
+  <rect width="192" height="192" rx="44" fill="#0c0c0c"/>
+
+  <!-- 外框细线 -->
+  <rect x="14" y="14" width="164" height="164" rx="36" fill="none" stroke="#1c1c1c" stroke-width="1.5"/>
+
+  <!-- 中心图形: 桥接枢纽 -->
+  <g transform="translate(96, 96)">
+    <!-- 外环刻度 -->
+    <circle cx="0" cy="0" r="58" fill="none" stroke="#222" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="50" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+
+    <!-- 四向刻度线 -->
+    <line x1="0" y1="-58" x2="0" y2="-54" stroke="#404040" stroke-width="2" stroke-linecap="round"/>
+    <line x1="0" y1="58" x2="0" y2="54" stroke="#404040" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-58" y1="0" x2="-54" y2="0" stroke="#404040" stroke-width="2" stroke-linecap="round"/>
+    <line x1="58" y1="0" x2="54" y2="0" stroke="#404040" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- 中心圆环 -->
+    <circle cx="0" cy="0" r="16" fill="none" stroke="#e5e5e5" stroke-width="3"/>
+    <circle cx="0" cy="0" r="7" fill="#e5e5e5"/>
+
+    <!-- 四向连接臂 -->
+    <line x1="-16" y1="0" x2="-42" y2="0" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="16" y1="0" x2="42" y2="0" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="-16" x2="0" y2="-42" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="16" x2="0" y2="42" stroke="#e5e5e5" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- 端点: 左=活跃(绿) 其余=待机(灰) -->
+    <circle cx="-44" cy="0" r="5" fill="#22c55e"/>
+    <circle cx="44" cy="0" r="5" fill="#525252"/>
+    <circle cx="0" cy="-44" r="5" fill="#525252"/>
+    <circle cx="0" cy="44" r="5" fill="#525252"/>
+  </g>
+</svg>

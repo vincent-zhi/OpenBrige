@@ -47,14 +47,18 @@ export function createWsHandler(server: Server, deps: WsHandlerDeps): {
       threshold: 256,
     },
     verifyClient: (info, cb) => {
-    // If pairing is enabled, check for valid token
-    if (validTokens && validTokens.size > 0) {
-      const url = new URL(info.req.url ?? '', `http://${info.req.headers.host ?? 'localhost'}`);
-      const token = url.searchParams.get('token') ?? info.req.headers['authorization']?.replace('Bearer ', '');
-      if (!token || !validTokens.has(token)) {
-        cb(false, 401, 'Unauthorized');
-        return;
-      }
+    // Development mode: allow unauthenticated connections
+    if (process.env.OPENBRIGE_ALLOW_UNAUTHENTICATED === 'true') {
+      cb(true);
+      return;
+    }
+
+    // Always require a valid token
+    const url = new URL(info.req.url ?? '', `http://${info.req.headers.host ?? 'localhost'}`);
+    const token = url.searchParams.get('token') ?? info.req.headers['authorization']?.replace('Bearer ', '');
+    if (!token || !validTokens?.has(token)) {
+      cb(false, 401, 'Unauthorized');
+      return;
     }
     cb(true);
   } });
@@ -72,8 +76,11 @@ export function createWsHandler(server: Server, deps: WsHandlerDeps): {
     sub.flushTimer = null;
 
     if (events.length === 1) {
-      const msg: WsEvent = { type: 'event', event: events[0] };
-      sendJson(sub.ws, msg);
+      const firstEvent = events[0];
+      if (firstEvent) {
+        const msg: WsEvent = { type: 'event', event: firstEvent };
+        sendJson(sub.ws, msg);
+      }
     } else {
       const msg: WsBatchEvents = { type: 'batch', events };
       sendJson(sub.ws, msg);
@@ -122,7 +129,10 @@ export function createWsHandler(server: Server, deps: WsHandlerDeps): {
             sendJson(ws, msg);
           }
         }
-        sub.cursor = missed[missed.length - 1].seq;
+        const lastEvent = missed[missed.length - 1];
+        if (lastEvent) {
+          sub.cursor = lastEvent.seq;
+        }
         const ack: WsCursorAck = { type: 'cursor_ack', cursor: sub.cursor };
         sendJson(ws, ack);
       }

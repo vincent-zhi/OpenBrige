@@ -118,6 +118,22 @@ export class WorktreeManager {
     return worktrees;
   }
 
+  async mergeWorktree(cwd: string, sessionId: string): Promise<void> {
+    const branchName = `openbrige/${sessionId}`;
+
+    await execFileAsync("git", ["merge", branchName], { cwd });
+  }
+
+  async hasWorktree(cwd: string, sessionId: string): Promise<boolean> {
+    const worktreePath = this.getWorktreePath(cwd, sessionId);
+    try {
+      await fs.access(worktreePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async generatePatch(cwd: string, sessionId: string): Promise<string> {
     const worktreePath = this.getWorktreePath(cwd, sessionId);
 

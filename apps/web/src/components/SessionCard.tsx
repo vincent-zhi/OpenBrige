@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import type { BridgeSession } from '@openbrige/shared-types';
 import { StatusBar } from './StatusBar';
-import { Bot, FileCode2, Clock, Shield, HelpCircle, TestTube2 } from 'lucide-react';
+import { Bot, FileCode2, Clock, Shield, HelpCircle, TestTube2, Folder, Zap } from 'lucide-react';
 import { formatDistanceToNow } from '../lib/format';
 
 interface SessionCardProps {
@@ -18,7 +18,9 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
   }
 
   const agentIcon = session.uiHints?.agentIcon;
-  const agentName = session.uiHints?.agentName ?? 'Agent';
+  const agentName = session.uiHints?.agentName ?? session.profileId ?? 'Agent';
+  const projectName = session.cwd.split('/').pop() || session.cwd.split('\\').pop() || session.cwd;
+  const recentAction = session.uiHints?.lastQuestion ?? session.uiHints?.detectedPrompt;
 
   return (
     <button
@@ -29,17 +31,21 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
         {agentIcon ? (
           <span className="text-base">{agentIcon}</span>
         ) : (
-          <Bot size={18} className="text-gray-500" />
+          <Bot size={18} className="text-fg-subtle" />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white truncate">{session.title}</span>
+          <span className="text-sm font-medium text-fg truncate">{session.title}</span>
           <StatusBar status={session.status} className="shrink-0" />
         </div>
-        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+        <div className="flex items-center gap-3 mt-1 text-xs text-fg-subtle">
           <span className="truncate">{agentName}</span>
+          <span className="flex items-center gap-1 shrink-0">
+            <Folder size={11} />
+            {projectName}
+          </span>
           {session.git && (
             <span className="flex items-center gap-1 shrink-0">
               <FileCode2 size={11} />
@@ -75,6 +81,12 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
             {formatDistanceToNow(session.updatedAt)}
           </span>
         </div>
+        {recentAction && (
+          <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-600 truncate">
+            <Zap size={10} className="shrink-0" />
+            <span className="truncate">{recentAction}</span>
+          </div>
+        )}
       </div>
     </button>
   );

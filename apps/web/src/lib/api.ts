@@ -48,6 +48,23 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+async function fetchText(path: string, init?: RequestInit): Promise<string> {
+  const headers: Record<string, string> = {};
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers,
+    ...init,
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`API ${res.status}: ${body || res.statusText}`);
+  }
+  return res.text();
+}
+
 // Sessions
 export async function fetchSessions(): Promise<BridgeSession[]> {
   const data = await fetchJson<{ sessions: BridgeSession[] }>('/sessions');
@@ -144,4 +161,35 @@ export async function fetchConnections(): Promise<ConnectionInfo[]> {
 export async function fetchDoctor(): Promise<DiagnosticResult[]> {
   const data = await fetchJson<{ results: DiagnosticResult[] }>('/doctor/connect');
   return data.results;
+}
+
+// Sandbox
+export async function exportPatch(sessionId: string): Promise<string> {
+  return fetchText(`/sessions/${sessionId}/sandbox/patch`);
+}
+
+export async function mergeSandbox(sessionId: string): Promise<void> {
+  await fetchJson(`/sessions/${sessionId}/sandbox/merge`, {
+    method: 'POST',
+    headers: { 'X-Confirm': 'true' },
+  });
+}
+
+export async function deleteSandbox(sessionId: string): Promise<void> {
+  await fetchJson(`/sessions/${sessionId}/sandbox`, {
+    method: 'DELETE',
+    headers: { 'X-Confirm': 'true' },
+  });
+}
+
+export async function generateCommit(sessionId: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/sessions/${sessionId}/generate-commit`, { method: 'POST' });
+  if (!res.ok) throw new Error(`Failed to generate commit: ${res.statusText}`);
+  return res.json();
+}
+
+export async function generatePR(sessionId: string): Promise<{ description: string }> {
+  const res = await fetch(`${API_BASE}/sessions/${sessionId}/generate-pr`, { method: 'POST' });
+  if (!res.ok) throw new Error(`Failed to generate PR: ${res.statusText}`);
+  return res.json();
 }

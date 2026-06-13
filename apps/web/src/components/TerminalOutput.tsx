@@ -119,7 +119,7 @@ export function TerminalOutput({ events }: TerminalOutputProps) {
       {/* Search bar */}
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-700 bg-bg shrink-0">
         <svg
-          className="w-4 h-4 text-gray-400 shrink-0"
+          className="w-4 h-4 text-fg-muted shrink-0"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -136,17 +136,18 @@ export function TerminalOutput({ events }: TerminalOutputProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search output..."
+          aria-label="Search output"
           className="flex-1 bg-transparent text-xs text-gray-300 placeholder-gray-500 outline-none"
         />
         {searchQuery && (
-          <span className="text-xs text-gray-500 shrink-0">
+          <span className="text-xs text-fg-subtle shrink-0">
             {filteredIndices.length}/{lines.length}
           </span>
         )}
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="text-gray-400 hover:text-gray-200 shrink-0"
+            className="text-fg-muted hover:text-fg shrink-0"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

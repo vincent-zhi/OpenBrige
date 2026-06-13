@@ -12,6 +12,16 @@ export default function App() {
   const setWsState = useSessionStore((s) => s.setWsState);
 
   useEffect(() => {
+    // Set initial theme attribute on mount
+    const stored = localStorage.getItem('openbrige-theme');
+    if (stored) {
+      document.documentElement.setAttribute('data-theme', stored);
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, []);
+
+  useEffect(() => {
     wsClient.onStateChange = setWsState;
     wsClient.connect('/ws');
     return () => wsClient.disconnect();

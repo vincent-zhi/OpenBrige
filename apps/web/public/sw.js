@@ -2,6 +2,7 @@ const CACHE_NAME = 'openbrige-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/manifest.json',
 ];
 
 self.addEventListener('install', (event) => {

@@ -30,14 +30,14 @@ export interface DiagnosticResult {
   details?: string;
 }
 
-export function printBanner(options: {
+export async function printBanner(options: {
   port: number;
   host: string;
   lanIP?: string;
   profiles?: string[];
   sandboxEnabled?: boolean;
   diagnostics?: DiagnosticResult[];
-}): void {
+}): Promise<void> {
   const { port, host, lanIP, profiles, sandboxEnabled, diagnostics } = options;
 
   const localIPs = getLocalIPs();
@@ -82,7 +82,7 @@ export function printBanner(options: {
     console.log(`  https://${detectedLanIP}:${port}`);
     console.log();
     console.log('Scan QR:');
-    const qr = generateQRCodeASCII(`https://${detectedLanIP}:${port}`);
+    const qr = await generateQRCodeASCII(`https://${detectedLanIP}:${port}`);
     for (const line of qr.split('\n')) {
       console.log(`  ${line}`);
     }

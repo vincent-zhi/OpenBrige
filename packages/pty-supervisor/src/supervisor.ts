@@ -157,6 +157,30 @@ export class PtySupervisor {
     instance.process.resize(cols, rows);
   }
 
+  pause(sessionId: string): void {
+    const instance = this.instances.get(sessionId);
+    if (!instance) {
+      throw new Error(`No active PTY for session ${sessionId}`);
+    }
+    try {
+      process.kill(instance.process.pid, 'SIGSTOP');
+    } catch {
+      throw new Error(`Failed to pause process for session ${sessionId}`);
+    }
+  }
+
+  resume(sessionId: string): void {
+    const instance = this.instances.get(sessionId);
+    if (!instance) {
+      throw new Error(`No active PTY for session ${sessionId}`);
+    }
+    try {
+      process.kill(instance.process.pid, 'SIGCONT');
+    } catch {
+      throw new Error(`Failed to resume process for session ${sessionId}`);
+    }
+  }
+
   async stop(sessionId: string): Promise<void> {
     const instance = this.instances.get(sessionId);
     if (!instance) {

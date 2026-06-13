@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Send, Square, Loader2, RotateCcw, ThumbsUp, Bug, FileCode2, GitBranch, Play, MessageSquare, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { BridgeSession, QuickAction } from '@openbrige/shared-types';
-import { sendInput, stopSession } from '../lib/api';
+import { sendInput, stopSession, generateCommit, generatePR, exportPatch, mergeSandbox, deleteSandbox } from '../lib/api';
 
 interface ActionPadProps {
   session: BridgeSession;
@@ -111,8 +111,67 @@ export function ActionPad({ session }: ActionPadProps) {
     sendMut.mutate(text);
   }
 
-  function handleQuickAction(text: string) {
-    sendMut.mutate(text);
+  async function handleQuickAction(action: QuickAction) {
+    const id = action.id;
+
+    // Special actions that call APIs
+    if (id === 'merge_sandbox') {
+      if (!confirm('Merge sandbox changes into main workspace?')) return;
+      try {
+        await mergeSandbox(session.id);
+      } catch (e) {
+        alert(`Failed to merge sandbox: ${e instanceof Error ? e.message : String(e)}`);
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['session', session.id] });
+      return;
+    }
+    if (id === 'delete_sandbox') {
+      if (!confirm('Delete sandbox? This cannot be undone.')) return;
+      try {
+        await deleteSandbox(session.id);
+      } catch (e) {
+        alert(`Failed to delete sandbox: ${e instanceof Error ? e.message : String(e)}`);
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['session', session.id] });
+      return;
+    }
+    if (id === 'export_patch') {
+      try {
+        const patch = await exportPatch(session.id);
+        await navigator.clipboard.writeText(patch);
+        alert('Patch copied to clipboard!');
+      } catch (e) {
+        alert(`Failed to export patch: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      return;
+    }
+    if (id === 'commit_msg') {
+      try {
+        const result = await generateCommit(session.id);
+        await navigator.clipboard.writeText(result.message);
+        alert('Commit message copied to clipboard!\n\n' + result.message);
+      } catch (e) {
+        alert(`Failed to generate commit message: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      return;
+    }
+    if (id === 'pr_desc') {
+      try {
+        const result = await generatePR(session.id);
+        await navigator.clipboard.writeText(result.description);
+        alert('PR description copied to clipboard!');
+      } catch (e) {
+        alert(`Failed to generate PR description: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      return;
+    }
+
+    // Default: send as input to PTY
+    if (action.text) {
+      sendMut.mutate(action.text);
+    }
   }
 
   const contextActions = getContextActions(session);
@@ -130,9 +189,9 @@ export function ActionPad({ session }: ActionPadProps) {
             return (
               <button
                 key={action.id}
-                onClick={() => handleQuickAction(action.text)}
+                onClick={() => handleQuickAction(action)}
                 disabled={sendMut.isPending}
-                className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 shrink-0"
+                className="btn-secondary text-xs py-2.5 px-4 flex items-center gap-1.5 shrink-0"
               >
                 <Icon size={13} />
                 {action.label}
@@ -150,6 +209,7 @@ export function ActionPad({ session }: ActionPadProps) {
           disabled={!canInput || sendMut.isPending}
           className="input flex-1"
           data-action-input
+          aria-label="Message input"
         />
 
         {isRunning && (
@@ -157,6 +217,7 @@ export function ActionPad({ session }: ActionPadProps) {
             type="button"
             onClick={() => stopMut.mutate()}
             disabled={stopMut.isPending}
+            aria-label="Stop session"
             className="btn-ghost p-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
             <Square size={18} />

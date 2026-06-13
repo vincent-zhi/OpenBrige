@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { fetchSessions } from '../lib/api';
+import { cacheSessions, getCachedSessions } from '../lib/indexeddb';
 import { useSessionStore } from '../stores/session';
 import { SessionCard } from '../components/SessionCard';
 import { NewSessionModal } from '../components/NewSessionModal';
@@ -32,7 +33,17 @@ export function Inbox() {
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['sessions'],
-    queryFn: fetchSessions,
+    queryFn: async () => {
+      try {
+        const data = await fetchSessions();
+        await cacheSessions(data);
+        return data;
+      } catch (error) {
+        const cached = await getCachedSessions();
+        if (cached.length > 0) return cached;
+        throw error;
+      }
+    },
     refetchInterval: 10000,
   });
 
@@ -50,7 +61,7 @@ export function Inbox() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-        <h2 className="text-xl font-semibold text-white">Inbox</h2>
+        <h2 className="text-xl font-semibold text-fg">Inbox</h2>
         <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
           <Plus size={16} />
           <span className="hidden sm:inline">New Session</span>
@@ -59,11 +70,12 @@ export function Inbox() {
 
       <div className="px-4 py-3 shrink-0">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-subtle" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search sessions..."
+            aria-label="Search sessions"
             className="input pl-9"
           />
         </div>
@@ -71,14 +83,14 @@ export function Inbox() {
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {isLoading ? (
-          <div className="flex items-center justify-center h-40 text-gray-500">Loading sessions...</div>
+          <div className="flex items-center justify-center h-40 text-fg-subtle">Loading sessions...</div>
         ) : (
           <div className="space-y-6">
             {groups.map((group) => {
               const items = groupSessions(group.statuses);
               return (
                 <section key={group.title}>
-                  <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  <h3 className="text-sm font-medium text-fg-muted uppercase tracking-wider mb-2">
                     {group.title}
                     {items.length > 0 && (
                       <span className="ml-2 text-gray-600">{items.length}</span>

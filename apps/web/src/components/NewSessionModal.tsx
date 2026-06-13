@@ -42,7 +42,7 @@ export function NewSessionModal({ onClose }: NewSessionModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="card w-full max-w-md mx-4 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white">New Session</h3>
+          <h3 className="text-lg font-semibold text-fg">New Session</h3>
           <button onClick={onClose} className="btn-ghost p-1">
             <X size={18} />
           </button>
@@ -50,7 +50,7 @@ export function NewSessionModal({ onClose }: NewSessionModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Profile</label>
+            <label className="block text-sm font-medium text-fg-muted mb-1.5">Profile</label>
             <select
               value={profileId}
               onChange={(e) => setProfileId(e.target.value)}
@@ -66,7 +66,7 @@ export function NewSessionModal({ onClose }: NewSessionModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Working Directory</label>
+            <label className="block text-sm font-medium text-fg-muted mb-1.5">Working Directory</label>
             <input
               value={cwd}
               onChange={(e) => setCwd(e.target.value)}
@@ -76,7 +76,7 @@ export function NewSessionModal({ onClose }: NewSessionModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Command</label>
+            <label className="block text-sm font-medium text-fg-muted mb-1.5">Command</label>
             <input
               value={command}
               onChange={(e) => setCommand(e.target.value)}
@@ -86,7 +86,7 @@ export function NewSessionModal({ onClose }: NewSessionModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">Workspace Mode</label>
+            <label className="block text-sm font-medium text-fg-muted mb-1.5">Workspace Mode</label>
             <div className="flex gap-2">
               {(['current', 'worktree'] as const).map((mode) => (
                 <button
@@ -96,7 +96,7 @@ export function NewSessionModal({ onClose }: NewSessionModalProps) {
                   className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                     workspaceMode === mode
                       ? 'bg-accent/20 text-accent-hover border border-accent/30'
-                      : 'bg-bg-elevated text-gray-400 border border-border hover:border-border-hover'
+                      : 'bg-bg-elevated text-fg-muted border border-border hover:border-border-hover'
                   }`}
                 >
                   {mode === 'current' ? 'Current' : 'Worktree'}

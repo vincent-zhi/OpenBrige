@@ -54,67 +54,36 @@
   <!-- 中央光晕 -->
   <ellipse cx="600" cy="170" rx="380" ry="120" fill="var(--cyan-glow)" opacity="0.8"/>
 
-  <!-- ====== 核心视觉：桥接 ====== -->
+  <!-- ====== 核心视觉：桥接枢纽 ====== -->
   <g transform="translate(600, 175)">
-    <!-- 左侧黑盒 -->
-    <g transform="translate(-260, 0)">
-      <rect x="-56" y="-44" width="112" height="88" rx="8" fill="var(--box-bg)" stroke="var(--box-border)" stroke-width="1.2"/>
-      <rect x="-48" y="-36" width="96" height="72" rx="4" fill="none" stroke="var(--border)" stroke-width="0.8"/>
-      <circle cx="0" cy="-6" r="14" fill="none" stroke="var(--text-tertiary)" stroke-width="1.2" opacity="0.4"/>
-      <circle cx="0" cy="-6" r="7" fill="none" stroke="var(--text-tertiary)" stroke-width="0.8" opacity="0.25"/>
-      <rect x="-32" y="18" width="64" height="3" rx="1.5" fill="var(--border)"/>
-      <rect x="-32" y="26" width="42" height="3" rx="1.5" fill="var(--border-subtle)"/>
-      <text x="0" y="-2" text-anchor="middle" fill="var(--text-tertiary)" font-family="system-ui, sans-serif" font-size="14" opacity="0.25">?</text>
-    </g>
+    <!-- 外环刻度 -->
+    <circle cx="0" cy="0" r="90" fill="none" stroke="var(--border)" stroke-width="1.2" opacity="0.5"/>
+    <circle cx="0" cy="0" r="78" fill="none" stroke="var(--border-subtle)" stroke-width="0.8" opacity="0.4"/>
 
-    <!-- 右侧驾驶舱 -->
-    <g transform="translate(260, 0)">
-      <rect x="-56" y="-44" width="112" height="88" rx="8" fill="var(--box-bg)" stroke="var(--cyan)" stroke-width="2" filter="url(#glow)"/>
-      <rect x="-48" y="-36" width="96" height="72" rx="4" fill="none" stroke="var(--border)" stroke-width="0.8"/>
-      <circle cx="-18" cy="-8" r="10" fill="none" stroke="var(--cyan)" stroke-width="1.2" opacity="0.6"/>
-      <circle cx="-18" cy="-8" r="5" fill="var(--cyan)" opacity="0.12"/>
-      <rect x="5" y="-18" width="28" height="2.5" rx="1.25" fill="var(--cyan)" opacity="0.4"/>
-      <rect x="5" y="-11" width="22" height="2.5" rx="1.25" fill="var(--cyan-light)" opacity="0.3"/>
-      <rect x="5" y="-4" width="16" height="2.5" rx="1.25" fill="var(--cyan)" opacity="0.2"/>
-      <circle cx="-30" cy="20" r="2.5" fill="#10b981" opacity="0.85"/>
-      <circle cx="-15" cy="20" r="2.5" fill="var(--cyan)" opacity="0.55"/>
-      <circle cx="0" cy="20" r="2.5" fill="var(--cyan-light)" opacity="0.45"/>
-      <circle cx="15" cy="20" r="2.5" fill="var(--amber)" opacity="0.45"/>
-      <circle cx="30" cy="20" r="2.5" fill="var(--amber-light)" opacity="0.35"/>
-    </g>
+    <!-- 四向刻度线 -->
+    <line x1="0" y1="-90" x2="0" y2="-84" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="0" y1="90" x2="0" y2="84" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-90" y1="0" x2="-84" y2="0" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="90" y1="0" x2="84" y2="0" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round"/>
 
-    <!-- 桥 -->
-    <path d="M -204 12 Q 0 -58 204 12" fill="none" stroke="var(--cyan-glow)" stroke-width="5"/>
-    <path d="M -204 12 Q 0 -58 204 12" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity="0.5"/>
+    <!-- 中心圆环 -->
+    <circle cx="0" cy="0" r="22" fill="none" stroke="var(--text-primary)" stroke-width="3"/>
+    <circle cx="0" cy="0" r="9" fill="var(--text-primary)"/>
 
-    <!-- 悬索 -->
-    <line x1="-140" y1="12" x2="-115" y2="-18" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="-95" y1="12" x2="-75" y2="-32" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="-48" y1="12" x2="-32" y2="-40" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="0" y1="12" x2="0" y2="-44" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="48" y1="12" x2="32" y2="-40" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="95" y1="12" x2="75" y2="-32" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
-    <line x1="140" y1="12" x2="115" y2="-18" stroke="var(--box-border)" stroke-width="0.8" opacity="0.4"/>
+    <!-- 四向连接臂 -->
+    <line x1="-22" y1="0" x2="-60" y2="0" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="22" y1="0" x2="60" y2="0" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="-22" x2="0" y2="-60" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="22" x2="0" y2="60" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round"/>
 
-    <!-- 流动粒子 -->
-    <circle cx="-130" cy="0" r="2.5" fill="var(--cyan)" opacity="0.7">
-      <animate attributeName="cx" values="-130;-65;0;65;130" dur="4s" repeatCount="indefinite"/>
-      <animate attributeName="cy" values="0;-20;-32;-20;0" dur="4s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.7;0.25;0.25;0.25;0.7" dur="4s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="-85" cy="-6" r="2" fill="var(--cyan-light)" opacity="0.5">
-      <animate attributeName="cx" values="-85;-28;28;85" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
-      <animate attributeName="cy" values="-6;-26;-26;-6" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
-      <animate attributeName="opacity" values="0.5;0.15;0.15;0.5" dur="3.5s" repeatCount="indefinite" begin="0.7s"/>
-    </circle>
-    <circle cx="-42" cy="-14" r="1.8" fill="var(--amber)" opacity="0.4">
-      <animate attributeName="cx" values="-42;0;42" dur="3s" repeatCount="indefinite" begin="1.4s"/>
-      <animate attributeName="cy" values="-14;-34;-14" dur="3s" repeatCount="indefinite" begin="1.4s"/>
-      <animate attributeName="opacity" values="0.4;0.12;0.4" dur="3s" repeatCount="indefinite" begin="1.4s"/>
-    </circle>
+    <!-- 端点: 左=活跃(绿) 其余=待机(灰) -->
+    <circle cx="-64" cy="0" r="6" fill="#10b981"/>
+    <circle cx="64" cy="0" r="6" fill="var(--text-tertiary)" opacity="0.5"/>
+    <circle cx="0" cy="-64" r="6" fill="var(--text-tertiary)" opacity="0.5"/>
+    <circle cx="0" cy="64" r="6" fill="var(--text-tertiary)" opacity="0.5"/>
 
     <!-- 底部基准线 -->
-    <line x1="-280" y1="48" x2="280" y2="48" stroke="var(--border)" stroke-width="0.8"/>
+    <line x1="-110" y1="105" x2="110" y2="105" stroke="var(--border)" stroke-width="0.8" opacity="0.3"/>
   </g>
 
   <!-- ====== 品牌文字 ====== -->

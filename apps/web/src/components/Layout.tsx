@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Inbox, UserCircle, Stethoscope, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { useSessionStore } from '../stores/session';
+import { ThemeToggle } from './ThemeToggle';
 import clsx from 'clsx';
 
 const navItems = [
@@ -47,7 +48,10 @@ export function Layout() {
           </div>
           <h1 className="text-lg font-semibold text-white hidden sm:block">OpenBrige</h1>
         </div>
-        <ConnectionIndicator />
+        <div className="flex items-center gap-2">
+          <ConnectionIndicator />
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -57,6 +61,7 @@ export function Layout() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
+              aria-label={item.label}
               className={({ isActive }) =>
                 clsx(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
@@ -83,6 +88,7 @@ export function Layout() {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            aria-label={item.label}
             className={({ isActive }) =>
               clsx(
                 'flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs transition-colors',

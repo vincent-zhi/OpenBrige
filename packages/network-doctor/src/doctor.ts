@@ -1,5 +1,6 @@
 import { networkInterfaces, hostname } from 'node:os';
 import { createConnection } from 'node:net';
+import { connect as tlsConnect } from 'node:tls';
 import { platform, release, arch } from 'node:os';
 import type { DiagnosticResult } from '@openbrige/shared-types';
 
@@ -96,6 +97,9 @@ export class NetworkDoctor {
 
     results.push(this.checkFirewallHints());
 
+    const certResult = await this.checkCertificate(host, port);
+    results.push(certResult);
+
     return results;
   }
 
@@ -150,5 +154,73 @@ export class NetworkDoctor {
       message: `${hints.length} platform-specific tip(s) available`,
       details: hints.join('\n'),
     };
+  }
+
+  async checkCertificate(host: string, port: number): Promise<DiagnosticResult> {
+    const result: DiagnosticResult = {
+      name: 'https-certificate',
+      status: 'warning',
+      message: '',
+      details: '',
+    };
+
+    try {
+      const cert = await new Promise<Record<string, unknown> | null>((resolve) => {
+        const socket = tlsConnect(
+          { host, port, rejectUnauthorized: false, servername: host },
+          () => {
+            const c = socket.getPeerCertificate();
+            socket.destroy();
+            resolve(c && Object.keys(c).length > 0 ? (c as unknown as Record<string, unknown>) : null);
+          },
+        );
+        socket.on('error', () => {
+          socket.destroy();
+          resolve(null);
+        });
+        socket.setTimeout(3000, () => {
+          socket.destroy();
+          resolve(null);
+        });
+      });
+
+      if (!cert) {
+        result.status = 'warning';
+        result.message = 'No certificate found — HTTPS not enabled or not reachable';
+        return result;
+      }
+
+      const validTo = new Date(cert.valid_to as string);
+      const now = new Date();
+      const subject = (cert.subject as Record<string, string>)?.CN || 'Unknown';
+      const issuer = (cert.issuer as Record<string, string>)?.CN || 'Unknown';
+      const validFrom = cert.valid_from as string;
+      const validToStr = cert.valid_to as string;
+      const fingerprint = cert.fingerprint as string;
+
+      if (validTo < now) {
+        result.status = 'error';
+        result.message = `Certificate expired on ${validToStr}`;
+      } else if (issuer === subject) {
+        result.status = 'warning';
+        result.message = 'Self-signed certificate detected';
+      } else {
+        result.status = 'ok';
+        result.message = `Valid until ${validToStr}`;
+      }
+
+      result.details = [
+        `Subject: ${subject}`,
+        `Issuer: ${issuer}`,
+        `Valid from: ${validFrom}`,
+        `Valid to: ${validToStr}`,
+        `Fingerprint: ${fingerprint}`,
+      ].join('\n');
+    } catch {
+      result.status = 'warning';
+      result.message = 'HTTPS not enabled or not reachable';
+    }
+
+    return result;
   }
 }

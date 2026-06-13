@@ -1,6 +1,8 @@
 const DB_NAME = 'openbrige';
 const DB_VERSION = 1;
 
+import type { BridgeSession, BridgeEvent } from '@openbrige/shared-types';
+
 interface StoreSchema {
   name: string;
   keyPath: string;
@@ -91,5 +93,59 @@ export async function idbClear(storeName: string): Promise<void> {
     tx.objectStore(storeName).clear();
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+  });
+}
+
+// --- High-level caching helpers ---
+
+export async function cacheSessions(sessions: BridgeSession[]): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('sessions', 'readwrite');
+    const store = tx.objectStore('sessions');
+    // Clear old data then write all new sessions
+    store.clear();
+    for (const session of sessions) {
+      store.put(session);
+    }
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getCachedSessions(): Promise<BridgeSession[]> {
+  return idbGetAll<BridgeSession>('sessions');
+}
+
+export async function cacheSessionEvents(sessionId: string, events: BridgeEvent[]): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('events', 'readwrite');
+    const store = tx.objectStore('events');
+    const index = store.index('sessionId');
+    // Delete old events for this session
+    const keysReq = index.getAllKeys(sessionId);
+    keysReq.onsuccess = () => {
+      for (const key of keysReq.result) {
+        store.delete(key as IDBValidKey);
+      }
+      // Write new events
+      for (const event of events) {
+        store.put(event);
+      }
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getCachedSessionEvents(sessionId: string): Promise<BridgeEvent[]> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('events', 'readonly');
+    const index = tx.objectStore('events').index('sessionId');
+    const req = index.getAll(sessionId);
+    req.onsuccess = () => resolve(req.result as BridgeEvent[]);
+    req.onerror = () => reject(req.error);
   });
 }

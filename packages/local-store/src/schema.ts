@@ -62,6 +62,7 @@ const MIGRATIONS: Record<number, (db: Database.Database) => void> = {
       );
 
       CREATE INDEX IF NOT EXISTS idx_events_session_id ON events(session_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_events_session_seq ON events(session_id, seq);
       CREATE INDEX IF NOT EXISTS idx_events_type ON events(type);
       CREATE INDEX IF NOT EXISTS idx_events_created_at ON events(created_at);
       CREATE INDEX IF NOT EXISTS idx_smart_cards_session_id ON smart_cards(session_id);

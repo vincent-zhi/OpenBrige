@@ -3,9 +3,67 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Background */
+    --color-bg-base: #0a0a0f;
+    --color-bg-surface: #12121a;
+    --color-bg-elevated: #1a1a28;
+    --color-bg-hover: #222236;
+
+    /* Foreground */
+    --color-fg: #f0f0f5;
+    --color-fg-muted: #9ca3af;
+    --color-fg-subtle: #6b7280;
+
+    /* Border */
+    --color-border: #2a2a3a;
+    --color-border-hover: #3a3a4a;
+
+    /* Accent */
+    --color-accent: #6366f1;
+    --color-accent-hover: #818cf8;
+    --color-accent-muted: #4f46e5;
+
+    /* Severity */
+    --color-success: #22c55e;
+    --color-warning: #eab308;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+
+    /* Scrollbar */
+    --color-scrollbar: #2a2a3a;
+    --color-scrollbar-hover: #3a3a4a;
+  }
+
+  [data-theme="light"] {
+    --color-bg-base: #ffffff;
+    --color-bg-surface: #f8f9fa;
+    --color-bg-elevated: #e9ecef;
+    --color-bg-hover: #dee2e6;
+
+    --color-fg: #1a1a2e;
+    --color-fg-muted: #495057;
+    --color-fg-subtle: #6c757d;
+
+    --color-border: #ced4da;
+    --color-border-hover: #adb5bd;
+
+    --color-accent: #4f46e5;
+    --color-accent-hover: #6366f1;
+    --color-accent-muted: #4338ca;
+
+    --color-success: #16a34a;
+    --color-warning: #ca8a04;
+    --color-error: #dc2626;
+    --color-info: #2563eb;
+
+    --color-scrollbar: #ced4da;
+    --color-scrollbar-hover: #adb5bd;
+  }
+
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2a2a3a transparent;
+    scrollbar-color: var(--color-scrollbar) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -18,12 +76,12 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: #2a2a3a;
+    background: var(--color-scrollbar);
     border-radius: 3px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: #3a3a4a;
+    background: var(--color-scrollbar-hover);
   }
 
   ::selection {
@@ -38,6 +96,11 @@
   #root {
     height: 100vh;
     overflow: hidden;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-accent, #6366f1);
+    outline-offset: 2px;
   }
 }
 

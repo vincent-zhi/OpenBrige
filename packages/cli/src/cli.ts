@@ -8,18 +8,19 @@ import { startServer } from '@openbrige/host';
 import { NetworkDoctor } from '@openbrige/network-doctor';
 import { LanDirectProvider } from '@openbrige/connection-manager';
 import { printBanner, printDiagnostics } from './banner.js';
-import type { BridgeSession, AgentProfile } from '@openbrige/shared-types';
+import type { BridgeSession, AgentProfile, Plugin } from '@openbrige/shared-types';
 
 const DEFAULT_PORT = 7443;
 const DEFAULT_HOST = 'localhost';
 
-function baseUrl(port: number, host: string): string {
+function baseUrl(port: number, host: string, tls?: boolean): string {
   const h = host === '0.0.0.0' ? 'localhost' : host;
-  return `http://${h}:${port}`;
+  const proto = tls ? 'https' : 'http';
+  return `${proto}://${h}:${port}`;
 }
 
-async function apiFetch<T>(path: string, port: number, host: string): Promise<T> {
-  const url = `${baseUrl(port, host)}${path}`;
+async function apiFetch<T>(path: string, port: number, host: string, tls?: boolean): Promise<T> {
+  const url = `${baseUrl(port, host, tls)}${path}`;
   const res = await fetch(url);
   if (!res.ok) {
     const body = await res.text();
@@ -44,7 +45,10 @@ program
   .option('-p, --port <port>', 'Port to listen on', String(DEFAULT_PORT))
   .option('-H, --host <host>', 'Host to bind to', DEFAULT_HOST)
   .option('-s, --sandbox', 'Run in sandbox mode')
-  .action(async (profile: string | undefined, opts: { port: string; host: string; sandbox?: boolean }) => {
+  .option('--tls', 'Enable HTTPS/TLS')
+  .option('--tls-cert <path>', 'Path to TLS certificate file (PEM)')
+  .option('--tls-key <path>', 'Path to TLS private key file (PEM)')
+  .action(async (profile: string | undefined, opts: { port: string; host: string; sandbox?: boolean; tls?: boolean; tlsCert?: string; tlsKey?: string }) => {
     const port = parseInt(opts.port, 10);
     if (isNaN(port) || port < 1 || port > 65535) {
       console.error('Error: invalid port number');
@@ -54,15 +58,19 @@ program
     let shutdownFn: (() => Promise<void>) | undefined;
 
     const serverReady = new Promise<void>((resolve) => {
-      const { shutdown } = startServer({
+      startServer({
         port,
         host: opts.host,
+        tls: opts.tls,
+        tlsCert: opts.tlsCert,
+        tlsKey: opts.tlsKey,
         onReady: () => {
           printBanner({ port, host: opts.host, profileName: profile });
           resolve();
         },
+      }).then(({ shutdown }) => {
+        shutdownFn = shutdown;
       });
-      shutdownFn = shutdown;
     });
 
     await serverReady;
@@ -73,13 +81,14 @@ program
           '/api/profiles',
           port,
           opts.host,
+          opts.tls,
         );
         const match = data.profiles.find(
           (p) => p.id === profile || p.name === profile,
         );
 
         if (match) {
-          await fetch(`${baseUrl(port, opts.host)}/api/sessions`, {
+          await fetch(`${baseUrl(port, opts.host, opts.tls)}/api/sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -88,6 +97,7 @@ program
               cwd: match.cwd,
               profileId: match.id,
               title: match.name,
+              workspaceMode: opts.sandbox ? 'worktree' : 'local',
             }),
           });
           console.log(`  Session started with profile: ${match.name}`);
@@ -160,10 +170,12 @@ sessionCmd
   .argument('<id>', 'Session ID')
   .option('-p, --port <port>', 'Server port', String(DEFAULT_PORT))
   .option('-H, --host <host>', 'Server host', DEFAULT_HOST)
-  .action((id: string, opts: { port: string; host: string }) => {
+  .option('--tls', 'Use HTTPS')
+  .action((id: string, opts: { port: string; host: string; tls?: boolean }) => {
     const port = parseInt(opts.port, 10);
     const h = opts.host === '0.0.0.0' ? 'localhost' : opts.host;
-    const url = `http://${h}:${port}/sessions/${id}`;
+    const proto = opts.tls ? 'https' : 'http';
+    const url = `${proto}://${h}:${port}/sessions/${id}`;
 
     const platform = process.platform;
     let command: string;
@@ -271,26 +283,27 @@ pluginCmd
   .action(async (opts: { port: string; host: string }) => {
     const port = parseInt(opts.port, 10);
     try {
-      const data = await apiFetch<{ profiles: AgentProfile[] }>(
-        '/api/profiles',
+      const data = await apiFetch<{ plugins: Plugin[] }>(
+        '/api/plugins',
         port,
         opts.host,
       );
 
-      if (data.profiles.length === 0) {
-        console.log('  No profiles found.');
-        console.log('  Add profiles to .openbrige/profiles/');
+      if (data.plugins.length === 0) {
+        console.log('  No plugins found.');
         return;
       }
 
       console.log();
-      console.log(`  ${'ID'.padEnd(22)} ${'Name'.padEnd(22)} ${'Command'}`);
-      console.log(`  ${'\u2500'.repeat(22)} ${'\u2500'.repeat(22)} ${'\u2500'.repeat(30)}`);
+      console.log(`  ${'Type'.padEnd(16)} ${'Name'.padEnd(22)} ${'Version'.padEnd(10)} ${'Enabled'}`);
+      console.log(`  ${'\u2500'.repeat(16)} ${'\u2500'.repeat(22)} ${'\u2500'.repeat(10)} ${'\u2500'.repeat(8)}`);
 
-      for (const p of data.profiles) {
-        const id = p.id.length > 20 ? p.id.slice(0, 20) + '..' : p.id.padEnd(20);
-        const name = p.name.length > 20 ? p.name.slice(0, 20) + '..' : p.name.padEnd(20);
-        console.log(`  ${id}  ${name}  ${p.command} ${p.args.join(' ')}`);
+      for (const p of data.plugins) {
+        const type = p.manifest.type.padEnd(16);
+        const name = p.manifest.name.length > 20 ? p.manifest.name.slice(0, 20) + '..' : p.manifest.name.padEnd(20);
+        const version = p.manifest.version.padEnd(10);
+        const enabled = p.enabled ? 'yes' : 'no';
+        console.log(`  ${type} ${name}  ${version} ${enabled}`);
       }
       console.log();
     } catch (err) {

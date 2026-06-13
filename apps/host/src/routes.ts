@@ -8,9 +8,11 @@ import type { SmartCardFactory } from '@openbrige/smart-cards';
 import type { WorkspaceWatcher } from '@openbrige/workspace-watcher';
 import type { ConnectionManager } from '@openbrige/connection-manager';
 import type { NetworkDoctor } from '@openbrige/network-doctor';
+import type { NotificationRouter } from '@openbrige/notification-router';
 import type { PluginRegistry } from '@openbrige/plugin-runtime';
+import type { WorktreeManager } from '@openbrige/worktree-manager';
 import type { SessionRecorder } from '@openbrige/session-recorder';
-import type { SessionStatus } from '@openbrige/shared-types';
+import type { SessionStatus, BridgeEvent } from '@openbrige/shared-types';
 
 export interface RouteDeps {
   store: Store;
@@ -20,7 +22,9 @@ export interface RouteDeps {
   watcher: WorkspaceWatcher | null;
   connectionManager: ConnectionManager;
   networkDoctor: NetworkDoctor;
+  notificationRouter: NotificationRouter;
   pluginRegistry: PluginRegistry;
+  worktreeManager: WorktreeManager;
   startTime: number;
   host: string;
   port: number;
@@ -28,6 +32,8 @@ export interface RouteDeps {
   pairedDeviceTokens: Set<string>;
   /** Session recorders for replay */
   recorders: Map<string, SessionRecorder>;
+  /** Broadcast event to WebSocket subscribers and persist */
+  broadcastEvent: (sessionId: string, event: BridgeEvent) => void;
 }
 
 // ── Pairing / Auth ──────────────────────────────────────────
@@ -83,10 +89,12 @@ export function createRoutes(deps: RouteDeps): Hono {
     store,
     supervisor,
     diffEngine,
-    cardFactory,
-    connectionManager,
+    cardFactory: _cardFactory,
+    connectionManager: _connectionManager,
     networkDoctor,
+    notificationRouter,
     pluginRegistry,
+    worktreeManager,
     startTime,
     host,
     port,
@@ -235,14 +243,30 @@ export function createRoutes(deps: RouteDeps): Hono {
     }
 
     try {
+      let effectiveCwd = parsed.data.cwd;
+      let worktreeInfo: import('@openbrige/worktree-manager').WorktreeInfo | undefined;
+
+      // When workspaceMode is 'worktree', create a git worktree before spawning
+      if (parsed.data.workspaceMode === 'worktree') {
+        const isRepo = await worktreeManager.isGitRepo(parsed.data.cwd);
+        if (!isRepo) {
+          return c.json({ error: 'Cannot use worktree mode: cwd is not a git repository' }, 400);
+        }
+        // Generate a pre-session ID to create the worktree with a deterministic path
+        const preSessionId = `wt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        worktreeInfo = await worktreeManager.createWorktree(parsed.data.cwd, preSessionId);
+        effectiveCwd = worktreeInfo.path;
+      }
+
       const sessionId = await supervisor.spawn({
         command: parsed.data.command,
         args: parsed.data.args,
-        cwd: parsed.data.cwd,
+        cwd: effectiveCwd,
         profileId: parsed.data.profileId,
         workspaceMode: parsed.data.workspaceMode,
         title: parsed.data.title,
       });
+
       const session = store.getSession(sessionId);
       return c.json({ session }, 201);
     } catch (err) {
@@ -379,10 +403,17 @@ export function createRoutes(deps: RouteDeps): Hono {
 
   // GET /api/sessions/:id/recording
   app.get('/api/sessions/:id/recording', (c) => {
-    const id = c.req.param('id');
-    // Return recording from the recorders map
-    // This needs access to recorders, so add it to RouteDeps
-    return c.json({ error: 'Recording not available via API - use event stream' }, 501);
+    const sessionId = c.req.param('id');
+
+    const recorder = deps.recorders.get(sessionId);
+    if (recorder) {
+      const recording = recorder.getRecording();
+      return c.json(recording.entries.map((e) => e.event));
+    }
+
+    // No in-memory recorder; fall back to persisted events from the store
+    const events = store.getEvents(sessionId);
+    return c.json(events);
   });
 
   // GET /api/plugins
@@ -400,6 +431,340 @@ export function createRoutes(deps: RouteDeps): Hono {
     const status = c.req.query('status');
     const actions = pluginRegistry.getActions(status);
     return c.json({ actions });
+  });
+
+  // ── Sandbox endpoints ───────────────────────────────────────
+
+  // GET /api/sessions/:id/sandbox/patch
+  app.get('/api/sessions/:id/sandbox/patch', async (c) => {
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    const hasWorktree = await worktreeManager.hasWorktree(session.cwd, id);
+    if (!hasWorktree) {
+      return c.json({ error: 'No sandbox worktree exists for this session' }, 404);
+    }
+
+    try {
+      const patch = await worktreeManager.generatePatch(session.cwd, id);
+      return c.text(patch);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate patch';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // POST /api/sessions/:id/sandbox/merge
+  app.post('/api/sessions/:id/sandbox/merge', async (c) => {
+    const confirmHeader = c.req.header('X-Confirm');
+    if (confirmHeader !== 'true') {
+      return c.json({ error: 'X-Confirm header is required for this action' }, 400);
+    }
+
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    const hasWorktree = await worktreeManager.hasWorktree(session.cwd, id);
+    if (!hasWorktree) {
+      return c.json({ error: 'No sandbox worktree exists for this session' }, 404);
+    }
+
+    try {
+      await worktreeManager.mergeWorktree(session.cwd, id);
+      return c.json({ ok: true, message: 'Sandbox merged into main workspace' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to merge sandbox';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // DELETE /api/sessions/:id/sandbox
+  app.delete('/api/sessions/:id/sandbox', async (c) => {
+    const confirmHeader = c.req.header('X-Confirm');
+    if (confirmHeader !== 'true') {
+      return c.json({ error: 'X-Confirm header is required for this action' }, 400);
+    }
+
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    const hasWorktree = await worktreeManager.hasWorktree(session.cwd, id);
+    if (!hasWorktree) {
+      return c.json({ error: 'No sandbox worktree exists for this session' }, 404);
+    }
+
+    try {
+      await worktreeManager.removeWorktree(session.cwd, id);
+      return c.json({ ok: true, message: 'Sandbox deleted' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete sandbox';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // ── Notification config endpoints ───────────────────────────
+
+  // GET /api/notifications/config
+  app.get('/api/notifications/config', (c) => {
+    const providers = notificationRouter.getProviders();
+    return c.json({ providers });
+  });
+
+  // PUT /api/notifications/config
+  app.put('/api/notifications/config', async (c) => {
+    const body = await c.req.json();
+    const { enabled } = body as { enabled?: Record<string, boolean> };
+
+    if (enabled) {
+      for (const [id, isEnabled] of Object.entries(enabled)) {
+        if (isEnabled) {
+          notificationRouter.enableProvider(id);
+        } else {
+          notificationRouter.disableProvider(id);
+        }
+      }
+    }
+
+    const providers = notificationRouter.getProviders();
+    return c.json({ providers });
+  });
+
+  // ── Session Pause/Resume endpoints (Task 22) ─────────────
+
+  // POST /api/sessions/:id/pause
+  app.post('/api/sessions/:id/pause', async (c) => {
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    if (session.status === 'paused') {
+      return c.json({ error: 'Session is already paused' }, 400);
+    }
+
+    const previousStatus = session.status;
+
+    try {
+      supervisor.pause(id);
+      const statusEvent = store.appendEvent(
+        id,
+        'session.status.changed',
+        { oldStatus: previousStatus, newStatus: 'paused', reason: 'paused by user' },
+      );
+      deps.broadcastEvent(id, statusEvent);
+      store.updateSession(id, { status: 'paused' as SessionStatus });
+      return c.json({ ok: true, previousStatus });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to pause session';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // POST /api/sessions/:id/resume
+  app.post('/api/sessions/:id/resume', async (c) => {
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    if (session.status !== 'paused') {
+      return c.json({ error: 'Session is not paused' }, 400);
+    }
+
+    // Determine the previous status to restore to
+    const body = await c.req.json().catch(() => ({}));
+    const previousStatus = (body.previousStatus as SessionStatus) || 'running';
+
+    try {
+      supervisor.resume(id);
+      const statusEvent = store.appendEvent(
+        id,
+        'session.status.changed',
+        { oldStatus: 'paused', newStatus: previousStatus, reason: 'resumed by user' },
+      );
+      deps.broadcastEvent(id, statusEvent);
+      store.updateSession(id, { status: previousStatus });
+      return c.json({ ok: true, status: previousStatus });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to resume session';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // ── Commit/PR Generation endpoints (Task 23) ─────────────
+
+  // POST /api/sessions/:id/generate-commit
+  app.post('/api/sessions/:id/generate-commit', async (c) => {
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    try {
+      const isRepo = await diffEngine.isGitRepo(session.cwd);
+      if (!isRepo) {
+        return c.json({ error: 'Session cwd is not a git repository' }, 400);
+      }
+
+      const diff = await diffEngine.getDiffSummary(session.cwd);
+
+      if (diff.filesChanged === 0) {
+        return c.json({ message: 'chore: no changes detected' });
+      }
+
+      // Build summary of changes
+      const statusCounts: Record<string, number> = {};
+      for (const file of diff.files) {
+        statusCounts[file.status] = (statusCounts[file.status] || 0) + 1;
+      }
+
+      // Determine conventional commit type
+      let commitType = 'feat';
+      if (statusCounts['deleted'] && !statusCounts['added'] && !statusCounts['modified']) {
+        commitType = 'chore';
+      } else if (Object.keys(statusCounts).length === 1 && statusCounts['modified']) {
+        commitType = 'fix';
+      }
+
+      // Build short summary
+      const summaryParts: string[] = [];
+      if (statusCounts['added']) summaryParts.push(`${statusCounts['added']} added`);
+      if (statusCounts['modified']) summaryParts.push(`${statusCounts['modified']} modified`);
+      if (statusCounts['deleted']) summaryParts.push(`${statusCounts['deleted']} deleted`);
+      if (statusCounts['renamed']) summaryParts.push(`${statusCounts['renamed']} renamed`);
+      if (statusCounts['untracked']) summaryParts.push(`${statusCounts['untracked']} untracked`);
+      const summary = summaryParts.join(', ');
+
+      // Build file list with +/- stats
+      const fileList = diff.files
+        .map((f) => `- ${f.path} (+${f.insertions}/-${f.deletions})`)
+        .join('\n');
+
+      const message = `${commitType}: ${summary}\n\nChanges:\n${fileList}`;
+      return c.json({ message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate commit message';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // POST /api/sessions/:id/generate-pr
+  app.post('/api/sessions/:id/generate-pr', async (c) => {
+    const id = c.req.param('id');
+    const session = store.getSession(id);
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    try {
+      const isRepo = await diffEngine.isGitRepo(session.cwd);
+      if (!isRepo) {
+        return c.json({ error: 'Session cwd is not a git repository' }, 400);
+      }
+
+      const diff = await diffEngine.getDiffSummary(session.cwd);
+
+      if (diff.filesChanged === 0) {
+        return c.json({ description: '## Summary\nNo changes detected.\n' });
+      }
+
+      // Build summary based on file changes
+      const statusCounts: Record<string, number> = {};
+      for (const file of diff.files) {
+        statusCounts[file.status] = (statusCounts[file.status] || 0) + 1;
+      }
+      const summaryParts: string[] = [];
+      if (statusCounts['added']) summaryParts.push(`${statusCounts['added']} file(s) added`);
+      if (statusCounts['modified']) summaryParts.push(`${statusCounts['modified']} file(s) modified`);
+      if (statusCounts['deleted']) summaryParts.push(`${statusCounts['deleted']} file(s) deleted`);
+      if (statusCounts['renamed']) summaryParts.push(`${statusCounts['renamed']} file(s) renamed`);
+      if (statusCounts['untracked']) summaryParts.push(`${statusCounts['untracked']} file(s) untracked`);
+      const summary = `This PR includes changes across ${diff.filesChanged} file(s): ${summaryParts.join(', ')}.`;
+
+      // Group files by category (status)
+      const groupedLines: string[] = [];
+      const groups: Record<string, string[]> = {};
+      for (const file of diff.files) {
+        const key = file.status;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(file.path);
+      }
+      for (const [status, paths] of Object.entries(groups)) {
+        groupedLines.push(`**${status.charAt(0).toUpperCase() + status.slice(1)}:**`);
+        for (const p of paths) {
+          groupedLines.push(`- ${p}`);
+        }
+      }
+
+      const description = [
+        '## Summary',
+        summary,
+        '',
+        '## Changed Files',
+        ...groupedLines,
+        '',
+        '## Stats',
+        `+${diff.insertions} insertions / -${diff.deletions} deletions across ${diff.filesChanged} file(s)`,
+      ].join('\n');
+
+      return c.json({ description });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate PR description';
+      return c.json({ error: message }, 500);
+    }
+  });
+
+  // ── Plugin Event Receiving endpoint (Task 24) ─────────────
+
+  // POST /api/plugin-events
+  app.post('/api/plugin-events', async (c) => {
+    const token = extractToken(c);
+    if (!isPaired(deps, token)) {
+      return c.json({ error: 'Unauthorized. Pair your device first.' }, 401);
+    }
+
+    const body = await c.req.json();
+    const { type, sessionId, data } = body as { type?: string; sessionId?: string; data?: Record<string, unknown> };
+
+    if (!type || typeof type !== 'string') {
+      return c.json({ error: 'Event "type" field is required and must be a string' }, 400);
+    }
+
+    // If sessionId is provided, validate the session exists
+    if (sessionId) {
+      const session = store.getSession(sessionId);
+      if (!session) {
+        return c.json({ error: 'Session not found' }, 404);
+      }
+    }
+
+    const effectiveSessionId = sessionId ?? '__global__';
+
+    // Inject the event into the Event Bus
+    const event = store.appendEvent(
+      effectiveSessionId,
+      'plugin.event',
+      {
+        pluginId: 'external',
+        eventType: type,
+        data: data ?? {},
+      },
+    );
+    deps.broadcastEvent(effectiveSessionId, event);
+
+    return c.json({ ok: true, event: { id: event.id, seq: event.seq } }, 201);
   });
 
   return app;

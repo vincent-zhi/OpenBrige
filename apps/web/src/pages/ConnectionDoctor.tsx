@@ -11,9 +11,9 @@ const statusIcons = {
 };
 
 const statusColors = {
-  ok: 'text-green-400',
-  warning: 'text-yellow-400',
-  error: 'text-red-400',
+  ok: 'text-green-500',
+  warning: 'text-yellow-500',
+  error: 'text-red-500',
 };
 
 // ── Client-side connectivity tests ──────────────────────────
@@ -115,8 +115,31 @@ async function testTunnelStatus(): Promise<ClientTestResult> {
   }
 }
 
+async function testMDNS(): Promise<ClientTestResult> {
+  const start = Date.now();
+  try {
+    const res = await fetch('/api/connections', { signal: AbortSignal.timeout(3000) });
+    const data = await res.json();
+    const hasMDNS = data.connections?.some((c: any) => c.type === 'lan-direct' && c.mdns);
+    return {
+      name: 'mDNS Discovery',
+      ok: hasMDNS,
+      latencyMs: Date.now() - start,
+      message: hasMDNS ? 'mDNS service found' : 'mDNS service not detected',
+    };
+  } catch (err) {
+    return {
+      name: 'mDNS Discovery',
+      ok: false,
+      latencyMs: -1,
+      error: 'mDNS not available',
+      message: 'mDNS service discovery is not available from browser',
+    };
+  }
+}
+
 async function runClientTests(): Promise<ClientTestResult[]> {
-  return Promise.all([testApiPing(), testWebSocket(), testDnsResolution(), testHttpsCert(), testMdnsFallback(), testLanFallback(), testTunnelStatus()]);
+  return Promise.all([testApiPing(), testWebSocket(), testDnsResolution(), testHttpsCert(), testMdnsFallback(), testLanFallback(), testTunnelStatus(), testMDNS()]);
 }
 
 export function ConnectionDoctor() {
@@ -146,12 +169,12 @@ export function ConnectionDoctor() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="px-4 py-3 border-b border-border">
-        <h2 className="text-xl font-semibold text-white">Connection Doctor</h2>
-        <p className="text-sm text-gray-500 mt-1">Diagnostics and connectivity status</p>
+        <h2 className="text-xl font-semibold text-fg">Connection Doctor</h2>
+        <p className="text-sm text-fg-subtle mt-1">Diagnostics and connectivity status</p>
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-40 text-gray-500">
+        <div className="flex items-center justify-center h-40 text-fg-subtle">
           <Loader2 size={20} className="animate-spin mr-2" />
           Running diagnostics...
         </div>
@@ -159,13 +182,13 @@ export function ConnectionDoctor() {
         <div className="p-4 space-y-6">
           {/* Server Diagnostics */}
           <section>
-            <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">
+            <h3 className="text-sm font-medium text-fg-muted uppercase tracking-wider mb-3">
               Server Diagnostics
             </h3>
 
             <div className="space-y-3">
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-medium text-fg-subtle uppercase tracking-wider mb-2">
                   Connections
                 </h4>
                 {connections.length === 0 ? (
@@ -175,8 +198,8 @@ export function ConnectionDoctor() {
                     {connections.map((conn) => (
                       <div key={conn.id} className="card p-3 flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-white">{conn.provider}</p>
-                          <p className="text-xs text-gray-500">{conn.mode}</p>
+                          <p className="text-sm font-medium text-fg">{conn.provider}</p>
+                          <p className="text-xs text-fg-subtle">{conn.mode}</p>
                         </div>
                         <span
                           className={clsx(
@@ -195,7 +218,7 @@ export function ConnectionDoctor() {
               </div>
 
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-medium text-fg-subtle uppercase tracking-wider mb-2">
                   Diagnostics
                 </h4>
                 {diagnostics.length === 0 ? (
@@ -209,10 +232,10 @@ export function ConnectionDoctor() {
                           <div className="flex items-start gap-3">
                             <Icon size={18} className={clsx(statusColors[diag.status], 'shrink-0 mt-0.5')} />
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-white">{diag.name}</p>
-                              <p className="text-sm text-gray-400 mt-0.5">{diag.message}</p>
+                              <p className="text-sm font-medium text-fg">{diag.name}</p>
+                              <p className="text-sm text-fg-muted mt-0.5">{diag.message}</p>
                               {diag.details && (
-                                <pre className="mt-2 text-xs text-gray-500 font-mono bg-bg rounded p-2 overflow-x-auto">
+                                <pre className="mt-2 text-xs text-fg-subtle font-mono bg-bg rounded p-2 overflow-x-auto">
                                   {diag.details}
                                 </pre>
                               )}
@@ -230,7 +253,7 @@ export function ConnectionDoctor() {
           {/* Client Connectivity */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+              <h3 className="text-sm font-medium text-fg-muted uppercase tracking-wider">
                 Client Connectivity
               </h3>
               <button
@@ -248,7 +271,7 @@ export function ConnectionDoctor() {
             </div>
 
             {clientRunning && !clientResults && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
+              <div className="flex items-center gap-2 text-sm text-fg-subtle py-4">
                 <Loader2 size={16} className="animate-spin" />
                 Running client-side tests...
               </div>
@@ -258,19 +281,19 @@ export function ConnectionDoctor() {
               <div className="space-y-2">
                 {clientResults.map((result, i) => {
                   const Icon = result.ok ? CheckCircle2 : XCircle;
-                  const color = result.ok ? 'text-green-400' : 'text-red-400';
+                  const color = result.ok ? 'text-green-500' : 'text-red-500';
                   return (
                     <div key={i} className="card p-3">
                       <div className="flex items-start gap-3">
                         <Icon size={18} className={clsx(color, 'shrink-0 mt-0.5')} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-white">{result.name}</p>
-                            <span className={clsx('text-xs font-mono', result.ok ? 'text-green-400' : 'text-red-400')}>
+                            <p className="text-sm font-medium text-fg">{result.name}</p>
+                            <span className={clsx('text-xs font-mono', result.ok ? 'text-green-500' : 'text-red-500')}>
                               {result.latencyMs >= 0 ? `${result.latencyMs}ms` : 'N/A'}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-400 mt-0.5">
+                          <p className="text-sm text-fg-muted mt-0.5">
                             {result.message ?? (result.ok ? 'OK' : 'Failed')}
                           </p>
                           {result.error && (

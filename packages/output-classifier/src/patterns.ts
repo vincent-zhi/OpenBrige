@@ -12,6 +12,24 @@ export interface PatternDef {
 
 export const BUILTIN_PATTERNS: PatternDef[] = [
   {
+    status: 'thinking',
+    regex: /(?:^|\n)\s*(?:thinking|analyzing|processing|let me think|considering|pondering|evaluating|reflecting on|working through|figuring out)\b/im,
+    confidence: 0.8,
+    cardKind: 'checkpoint',
+    cardTitle: 'Agent Thinking',
+    cardSummary: 'The agent is processing or analyzing',
+    cardSeverity: 'info',
+  },
+  {
+    status: 'running_command',
+    regex: /(?:^|\n)\s*(?:\$\s+[^\s]|>\s+[^\s]|running\s+(?:command|script|task)|executing\s+(?:command|script)|sh\s+-c\s|bash\s+-c\s|npm\s+(?:run|exec|start|test)|npx\s|pnpm\s|yarn\s|cargo\s+(?:run|build|test)|python\s|go\s+(?:run|test|build))/im,
+    confidence: 0.75,
+    cardKind: 'command',
+    cardTitle: 'Command Running',
+    cardSummary: 'A command is being executed',
+    cardSeverity: 'info',
+  },
+  {
     status: 'waiting_input',
     regex: /(?:^|\n)\s*(?:waiting for (?:user )?input|input (?:required|needed)|(?:enter|type|provide)\s.*[:?]|stdin.*(?:open|waiting)|>\s*$)/im,
     confidence: 0.85,

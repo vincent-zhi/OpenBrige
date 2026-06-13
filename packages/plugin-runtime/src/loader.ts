@@ -65,7 +65,7 @@ export class PluginLoader {
     if (typeof obj.version !== 'string' || !obj.version) {
       throw new Error('Invalid manifest: missing or invalid "version"');
     }
-    const validTypes = ['profile', 'ui-panel', 'action', 'notification', 'connection'];
+    const validTypes = ['profile', 'ui-panel', 'action', 'notification', 'connection', 'policy'];
     if (!validTypes.includes(obj.type as string)) {
       throw new Error(`Invalid manifest: "type" must be one of ${validTypes.join(', ')}`);
     }

@@ -1,0 +1,7 @@
+{
+  "id": "custom-gateway",
+  "name": "Custom Gateway",
+  "type": "connection",
+  "version": "0.1.0",
+  "description": "Connect via custom gateway server"
+}

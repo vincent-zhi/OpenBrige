@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { serveStatic } from '@hono/node-server/serve-static';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,12 +13,15 @@ import { WorktreeManager } from '@openbrige/worktree-manager';
 import { SessionRecorder } from '@openbrige/session-recorder';
 import { ConnectionManager, LanDirectProvider } from '@openbrige/connection-manager';
 import { NetworkDoctor } from '@openbrige/network-doctor';
+import { NotificationRouter, WebhookNotificationProvider } from '@openbrige/notification-router';
 import { PluginLoader, PluginRegistry } from '@openbrige/plugin-runtime';
 import { serve } from '@hono/node-server';
 import { createRoutes, type RouteDeps } from './routes.js';
 import { createWsHandler } from './ws.js';
 import type { Server } from 'node:http';
-import type { BridgeEvent, BridgeSession, WorkspaceFileChangedPayload, GitDiffUpdatedPayload, ClassifierCardCreatedPayload } from '@openbrige/shared-types';
+import selfsigned from 'selfsigned';
+import fs from 'node:fs';
+import type { BridgeEvent, BridgeSession, WorkspaceFileChangedPayload, GitDiffUpdatedPayload, ClassifierCardCreatedPayload, EventType } from '@openbrige/shared-types';
 import type { Classification } from '@openbrige/smart-cards';
 
 export interface HostConfig {
@@ -35,6 +39,12 @@ export interface HostConfig {
   rateLimitPerMinute?: number;
   /** Allowed origins for CORS/Origin check */
   allowedOrigins?: string[];
+  /** Enable HTTPS/TLS */
+  tls?: boolean;
+  /** Path to TLS certificate file (PEM) */
+  tlsCert?: string;
+  /** Path to TLS private key file (PEM) */
+  tlsKey?: string;
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,6 +55,11 @@ export function createHost(config: HostConfig): {
   shutdown: () => Promise<void>;
 } {
   const app = new Hono();
+
+  // CORS middleware - only enabled when allowedOrigins is configured
+  if (config.allowedOrigins && config.allowedOrigins.length > 0) {
+    app.use('*', cors({ origin: config.allowedOrigins, credentials: true }));
+  }
 
   // Rate limiting
   const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -127,6 +142,8 @@ export function createHost(config: HostConfig): {
   // Event bus: broadcast to WebSocket subscribers
   function broadcastEvent(sessionId: string, event: BridgeEvent): void {
     wsHandler?.broadcast(sessionId, event);
+    // Persist event (INSERT OR IGNORE handles dedup if already stored)
+    store.persistEvent(event);
     // Record for replay
     let recorder = recorders.get(sessionId);
     if (!recorder) {
@@ -139,8 +156,17 @@ export function createHost(config: HostConfig): {
   // PTY Supervisor - connected to event bus
   const supervisor = new PtySupervisor(store, broadcastEvent);
 
-  // Output Classifier - processes PTY output into structured states
-  const classifier = new OutputClassifier();
+  // Output Classifier - per-session instances for profile pattern support
+  const classifiers = new Map<string, OutputClassifier>();
+
+  function getClassifier(sessionId: string): OutputClassifier {
+    let cls = classifiers.get(sessionId);
+    if (!cls) {
+      cls = new OutputClassifier();
+      classifiers.set(sessionId, cls);
+    }
+    return cls;
+  }
 
   // Smart Card Factory - creates cards from classifications
   const cardFactory = new SmartCardFactory();
@@ -158,6 +184,10 @@ export function createHost(config: HostConfig): {
 
   // Network Doctor
   const networkDoctor = new NetworkDoctor();
+
+  // Notification Router
+  const notificationRouter = new NotificationRouter();
+  notificationRouter.registerProvider(new WebhookNotificationProvider(''));
 
   // Plugin Runtime
   const pluginLoader = new PluginLoader();
@@ -183,9 +213,7 @@ export function createHost(config: HostConfig): {
       const sessionId = matchingSession?.id ?? '__global__';
 
       // Store file change
-      store.upsertFile(sessionId, event.path, event.changeType, {
-        oldPath: event.oldPath,
-      });
+      store.upsertFile(sessionId, event.path, event.changeType);
 
       // Emit file change event
       const fileEvent = store.appendEvent<WorkspaceFileChangedPayload>(
@@ -277,6 +305,14 @@ export function createHost(config: HostConfig): {
           },
         );
         broadcastEvent(sessionId, cardEvent);
+
+        // Send notification via NotificationRouter
+        notificationRouter.send({
+          title: card.title,
+          body: card.summary,
+          severity: card.severity,
+          sessionId,
+        }).catch(() => {});
       }
     } catch {
       // diff calculation may fail for non-git dirs or other issues
@@ -290,15 +326,39 @@ export function createHost(config: HostConfig): {
   const patchStoreAppendEvent = (): void => {
     store.appendEvent = function <T = unknown>(
       sessionId: string,
-      type: string,
+      type: EventType,
       payload: T,
     ): BridgeEvent<T> {
       const event = originalAppendEvent(sessionId, type, payload);
 
+      // When a session is created, set up profile patterns and quick actions
+      if (type === 'session.created') {
+        const createdPayload = payload as { profileId?: string };
+        if (createdPayload.profileId) {
+          const profile = pluginRegistry.getProfile(createdPayload.profileId);
+          if (profile) {
+            // Set up profile patterns for the classifier
+            if (profile.patterns) {
+              getClassifier(sessionId).setProfilePatterns(profile.patterns as Record<string, string[]>);
+            }
+
+            // Set up quick actions as suggested actions in uiHints
+            if (profile.quick_actions && Object.keys(profile.quick_actions).length > 0) {
+              const suggestedActions = Object.values(profile.quick_actions);
+              store.updateSession(sessionId, {
+                uiHints: {
+                  suggestedActions,
+                },
+              });
+            }
+          }
+        }
+      }
+
       // When PTY output is stored, run classifier
       if (type === 'pty.output') {
         const ptyPayload = payload as { data: string; stream: string };
-        const results = classifier.classifyChunk(ptyPayload.data);
+        const results = getClassifier(sessionId).classifyChunk(ptyPayload.data);
 
         for (const result of results) {
           if (result.status === 'idle') continue;
@@ -335,6 +395,14 @@ export function createHost(config: HostConfig): {
                 },
               );
               broadcastEvent(sessionId, cardEvent);
+
+              // Send notification via NotificationRouter
+              notificationRouter.send({
+                title: card.title,
+                body: card.summary,
+                severity: card.severity,
+                sessionId,
+              }).catch(() => {});
             }
           }
 
@@ -386,6 +454,23 @@ export function createHost(config: HostConfig): {
         }
       }
 
+      // When process exits, clean up worktree and classifier
+      if (type === 'process.exited') {
+        const session = store.getSession(sessionId);
+        if (session && session.workspaceMode === 'worktree') {
+          // Find the original cwd (parent of .openbrige/worktrees/...)
+          // The session.cwd points to the worktree path; derive the repo root
+          const worktreePath = session.cwd;
+          const worktreesIndex = worktreePath.indexOf('.openbrige' + path.sep + 'worktrees' + path.sep);
+          if (worktreesIndex !== -1) {
+            const repoRoot = worktreePath.slice(0, worktreesIndex - 1);
+            worktreeManager.removeWorktree(repoRoot, sessionId).catch(() => {});
+          }
+        }
+        // Clean up per-session classifier
+        classifiers.delete(sessionId);
+      }
+
       return event;
     };
   };
@@ -401,12 +486,15 @@ export function createHost(config: HostConfig): {
     watcher,
     connectionManager,
     networkDoctor,
+    notificationRouter,
     pluginRegistry,
+    worktreeManager,
     startTime,
     host: config.host,
     port: config.port,
     pairedDeviceTokens,
     recorders,
+    broadcastEvent,
   };
 
   const routes = createRoutes(deps);
@@ -463,16 +551,72 @@ export interface StartServerResult {
 }
 
 export interface StartServerOptions extends HostConfig {
-  onReady?: (info: { port: number; host: string }) => void;
+  onReady?: (info: { port: number; host: string; protocol: string }) => void;
 }
 
-export function startServer(options: StartServerOptions): StartServerResult {
+async function getTlsCredentials(config: HostConfig): Promise<{ cert: string; key: string }> {
+  if (config.tlsCert && config.tlsKey) {
+    const cert = fs.readFileSync(config.tlsCert, 'utf8');
+    const key = fs.readFileSync(config.tlsKey, 'utf8');
+    return { cert, key };
+  }
+
+  // Auto-generate self-signed certificate
+  const attrs = [{ name: 'commonName', value: 'localhost' }];
+  const pems = await selfsigned.generate(attrs, {
+    keySize: 2048,
+    algorithm: 'sha256',
+    extensions: [
+      { name: 'basicConstraints', cA: false },
+      { name: 'keyUsage', digitalSignature: true, keyEncipherment: true },
+      { name: 'extKeyUsage', serverAuth: true },
+      {
+        name: 'subjectAltName',
+        altNames: [
+          { type: 2, value: 'localhost' },
+          { type: 7, ip: '127.0.0.1' },
+          { type: 7, ip: '::1' },
+        ],
+      },
+    ],
+  });
+  return { cert: pems.cert, key: pems.private };
+}
+
+export async function startServer(options: StartServerOptions): Promise<StartServerResult> {
   const { onReady, ...config } = options;
   const { app, init, shutdown } = createHost(config);
 
+  const useTls = config.tls ?? false;
+
+  if (useTls) {
+    const https = await import('node:https');
+    const credentials = await getTlsCredentials(config);
+
+    // Use Hono's serve with HTTPS createServer and TLS credentials
+    const server = serve({
+      fetch: app.fetch,
+      port: config.port,
+      hostname: config.host,
+      createServer: https.createServer,
+      serverOptions: credentials,
+    }, (info) => {
+      init(server as unknown as Server);
+      onReady?.({ port: info.port, host: config.host, protocol: 'https' });
+    });
+
+    return {
+      server: server as unknown as Server,
+      shutdown: async () => {
+        await shutdown();
+        server.close();
+      },
+    };
+  }
+
   const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
     init(server as unknown as Server);
-    onReady?.({ port: info.port, host: config.host });
+    onReady?.({ port: info.port, host: config.host, protocol: 'http' });
   });
 
   return {

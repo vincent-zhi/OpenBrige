@@ -328,6 +328,19 @@ export class Store {
     return row.seq;
   }
 
+  /**
+   * Persist an already-created event using INSERT OR IGNORE.
+   * If an event with the same (session_id, seq) already exists, it is silently skipped.
+   * This is used by broadcastEvent to ensure all events are persisted without double-writing.
+   */
+  persistEvent(event: BridgeEvent): void {
+    this.db
+      .prepare(
+        'INSERT OR IGNORE INTO events (id, session_id, seq, type, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run(event.id, event.sessionId, event.seq, event.type, JSON.stringify(event.payload), event.createdAt);
+  }
+
   // ── Smart Cards ──────────────────────────────────────────
 
   saveSmartCard(

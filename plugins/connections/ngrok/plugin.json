@@ -1,0 +1,7 @@
+{
+  "id": "ngrok",
+  "name": "Ngrok Tunnel",
+  "type": "connection",
+  "version": "0.1.0",
+  "description": "Expose local server via ngrok tunnel"
+}

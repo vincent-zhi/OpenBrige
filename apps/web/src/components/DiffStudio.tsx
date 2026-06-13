@@ -7,6 +7,13 @@ interface DiffStudioProps {
   diff?: DiffResult;
 }
 
+function extractHunkHeaders(patch: string): string[] {
+  return patch
+    .split('\n')
+    .filter((line) => line.startsWith('@@'))
+    .map((line) => line.trim());
+}
+
 // File categorization based on path
 type FileCategory = 'business' | 'test' | 'config' | 'docs' | 'other';
 
@@ -24,7 +31,7 @@ const CATEGORY_META: Record<FileCategory, { label: string; icon: typeof FileCode
   test: { label: 'Tests', icon: TestTube2, color: 'text-green-400' },
   config: { label: 'Configuration', icon: Settings, color: 'text-yellow-400' },
   docs: { label: 'Documentation', icon: BookOpen, color: 'text-purple-400' },
-  other: { label: 'Other', icon: FileCode2, color: 'text-gray-400' },
+  other: { label: 'Other', icon: FileCode2, color: 'text-fg-muted' },
 };
 
 export function DiffStudio({ diff }: DiffStudioProps) {
@@ -79,10 +86,10 @@ export function DiffStudio({ diff }: DiffStudioProps) {
     <div className="space-y-4">
       {/* Summary card */}
       <div className="card p-3">
-        <h4 className="text-sm font-medium text-white mb-2">Change Summary</h4>
+        <h4 className="text-sm font-medium text-fg mb-2">Change Summary</h4>
         <div className="flex gap-4 text-xs">
-          <span className="text-gray-400">
-            <span className="text-white font-medium">{diff.filesChanged}</span> files
+          <span className="text-fg-muted">
+            <span className="text-fg font-medium">{diff.filesChanged}</span> files
           </span>
           <span className="text-green-400">
             <Plus size={11} className="inline" /> {diff.insertions}
@@ -113,7 +120,7 @@ export function DiffStudio({ diff }: DiffStudioProps) {
                 onClick={() => toggleCategory(category)}
                 className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-bg-hover transition-colors"
               >
-                {isExpanded ? <ChevronDown size={14} className="text-gray-500" /> : <ChevronRight size={14} className="text-gray-500" />}
+                {isExpanded ? <ChevronDown size={14} className="text-fg-subtle" /> : <ChevronRight size={14} className="text-fg-subtle" />}
                 <Icon size={14} className={meta.color} />
                 <span className="text-sm font-medium text-gray-300">{meta.label}</span>
                 <span className="text-xs text-gray-600">({files.length})</span>
@@ -157,11 +164,11 @@ function DiffFileView({ file, isExpanded, onToggle }: DiffFileViewProps) {
         className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-bg-hover transition-colors"
       >
         {isExpanded ? (
-          <ChevronDown size={14} className="text-gray-500 shrink-0" />
+          <ChevronDown size={14} className="text-fg-subtle shrink-0" />
         ) : (
-          <ChevronRight size={14} className="text-gray-500 shrink-0" />
+          <ChevronRight size={14} className="text-fg-subtle shrink-0" />
         )}
-        <FileCode2 size={14} className="text-gray-500 shrink-0" />
+        <FileCode2 size={14} className="text-fg-subtle shrink-0" />
         <span className="text-sm text-gray-200 truncate flex-1">{file.path}</span>
         <span className="flex items-center gap-2 text-xs shrink-0">
           <span className="text-green-400">+{file.insertions}</span>
@@ -171,17 +178,33 @@ function DiffFileView({ file, isExpanded, onToggle }: DiffFileViewProps) {
 
       {!isExpanded && file.patch && (
         <div className="px-3 py-2 bg-bg/50 border-t border-border">
-          <pre className="text-xs font-mono overflow-hidden max-h-16 leading-4">
-            {file.patch.split('\n').slice(0, 5).map((line, i) => {
-              let color = 'text-gray-500';
-              if (line.startsWith('+') && !line.startsWith('+++')) color = 'text-green-500/50';
-              else if (line.startsWith('-') && !line.startsWith('---')) color = 'text-red-500/50';
-              else if (line.startsWith('@@')) color = 'text-purple-500/50';
+          {(() => {
+            const headers = extractHunkHeaders(file.patch);
+            if (headers.length > 0) {
               return (
-                <div key={i} className={clsx(color, 'whitespace-pre truncate')}>{line}</div>
+                <div className="space-y-0.5">
+                  {headers.map((header, i) => (
+                    <div key={i} className="text-xs font-mono text-purple-500/70 whitespace-pre truncate">
+                      {header}
+                    </div>
+                  ))}
+                </div>
               );
-            })}
-          </pre>
+            }
+            return (
+              <pre className="text-xs font-mono overflow-hidden max-h-16 leading-4">
+                {file.patch.split('\n').slice(0, 5).map((line, i) => {
+                  let color = 'text-fg-subtle';
+                  if (line.startsWith('+') && !line.startsWith('+++')) color = 'text-green-500/50';
+                  else if (line.startsWith('-') && !line.startsWith('---')) color = 'text-red-500/50';
+                  else if (line.startsWith('@@')) color = 'text-purple-500/50';
+                  return (
+                    <div key={i} className={clsx(color, 'whitespace-pre truncate')}>{line}</div>
+                  );
+                })}
+              </pre>
+            );
+          })()}
           <span className="text-xs text-gray-600">Click to expand full diff</span>
         </div>
       )}
@@ -190,7 +213,7 @@ function DiffFileView({ file, isExpanded, onToggle }: DiffFileViewProps) {
         <div className="border-t border-border">
           <pre className="text-xs font-mono overflow-x-auto p-3 bg-bg leading-5">
             {file.patch.split('\n').map((line, i) => {
-              let color = 'text-gray-400';
+              let color = 'text-fg-muted';
               if (line.startsWith('+') && !line.startsWith('+++')) color = 'text-green-400';
               else if (line.startsWith('-') && !line.startsWith('---')) color = 'text-red-400';
               else if (line.startsWith('@@')) color = 'text-purple-400';

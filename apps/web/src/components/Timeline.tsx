@@ -126,7 +126,7 @@ const cardVisuals: Record<CardType, CardVisual> = {
     icon: Terminal,
     borderColor: 'border-l-gray-500',
     bgColor: 'bg-gray-500/5',
-    iconColor: 'text-gray-400',
+    iconColor: 'text-fg-muted',
     label: '终端输出',
   },
   file_change: {
@@ -236,7 +236,7 @@ export function Timeline({ events, onAction }: TimelineProps) {
   });
 
   return (
-    <div ref={parentRef} className="h-full overflow-y-auto">
+    <div ref={parentRef} className="h-full overflow-y-auto" role="list">
       <div
         style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
       >
@@ -246,6 +246,7 @@ export function Timeline({ events, onAction }: TimelineProps) {
           return (
             <div
               key={event.id}
+              role="listitem"
               style={{
                 position: 'absolute',
                 top: 0,
@@ -301,8 +302,8 @@ function TimelineCard({ event, onAction }: TimelineCardProps) {
         <Icon size={16} className={clsx('shrink-0 mt-0.5', visual.iconColor)} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium text-gray-200 truncate">{visual.label}</span>
-            <span className="text-xs text-gray-600 shrink-0">
+            <span className="text-sm font-medium text-fg truncate">{visual.label}</span>
+            <span className="text-xs text-fg-subtle shrink-0">
               {formatDistanceToNow(event.createdAt)}
             </span>
           </div>
@@ -360,7 +361,7 @@ function CardContent({ cardType, event, onAction }: CardContentProps) {
 
 function UserPromptContent({ text }: { text: string }) {
   return (
-    <p className="text-xs text-gray-300 mt-1 line-clamp-4 whitespace-pre-wrap">
+    <p className="text-xs text-fg mt-1 line-clamp-4 whitespace-pre-wrap">
       {text}
     </p>
   );
@@ -369,8 +370,8 @@ function UserPromptContent({ text }: { text: string }) {
 function AgentMessageContent({ title, summary }: { title: string; summary: string }) {
   return (
     <div className="mt-1">
-      {title && <p className="text-xs font-medium text-gray-200">{title}</p>}
-      {summary && <p className="text-xs text-gray-400 mt-0.5 line-clamp-4">{summary}</p>}
+      {title && <p className="text-xs font-medium text-fg">{title}</p>}
+      {summary && <p className="text-xs text-fg-muted mt-0.5 line-clamp-4">{summary}</p>}
     </div>
   );
 }
@@ -386,7 +387,7 @@ function TerminalOutputContent({ data, stream }: { data: string; stream: string 
       )}
       <pre
         className={clsx(
-          'text-xs text-gray-400 font-mono whitespace-pre-wrap break-all',
+          'text-xs text-fg-muted font-mono whitespace-pre-wrap break-all',
           collapsed && isLong && 'line-clamp-3',
         )}
       >
@@ -395,6 +396,7 @@ function TerminalOutputContent({ data, stream }: { data: string; stream: string 
       {isLong && (
         <button
           className="text-xs text-blue-400 hover:text-blue-300 mt-1 flex items-center gap-0.5"
+          aria-label={collapsed ? '展开' : '收起'}
           onClick={() => setCollapsed(!collapsed)}
         >
           {collapsed ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -418,8 +420,8 @@ function FileChangeContent({
   if (event.type === 'workspace.file.changed') {
     return (
       <div className="mt-1">
-        <p className="text-xs text-gray-400">
-          <span className="text-gray-300">{p.changeType as string}</span>{' '}
+        <p className="text-xs text-fg-muted">
+          <span className="text-fg">{p.changeType as string}</span>{' '}
           <span className="font-mono">{p.path as string}</span>
         </p>
         <div className="flex gap-1.5 mt-2">
@@ -436,7 +438,7 @@ function FileChangeContent({
   const summary = p.summary as string;
   return (
     <div className="mt-1">
-      {summary && <p className="text-xs text-gray-400 line-clamp-2">{summary}</p>}
+      {summary && <p className="text-xs text-fg-muted line-clamp-2">{summary}</p>}
       <div className="flex gap-1.5 mt-2">
         <ActionButton
           label="查看 Diff"
@@ -462,8 +464,8 @@ function DiffSummaryContent({
     const deletions = p.deletions as number;
     return (
       <div className="mt-1">
-        <p className="text-xs text-gray-400">
-          修改 <span className="text-gray-200">{filesChanged}</span> 个文件，{' '}
+        <p className="text-xs text-fg-muted">
+          修改 <span className="text-fg">{filesChanged}</span> 个文件，{' '}
           <span className="text-green-400">+{insertions}</span>{' '}
           <span className="text-red-400">-{deletions}</span>
         </p>
@@ -481,7 +483,7 @@ function DiffSummaryContent({
   const summary = p.summary as string;
   return (
     <div className="mt-1">
-      {summary && <p className="text-xs text-gray-400 line-clamp-2">{summary}</p>}
+      {summary && <p className="text-xs text-fg-muted line-clamp-2">{summary}</p>}
       <div className="flex gap-1.5 mt-2">
         <ActionButton
           label="查看 Diff"
@@ -508,7 +510,7 @@ function TestResultContent({
   return (
     <div className="mt-1">
       {title && <p className="text-xs font-medium text-gray-200">{title}</p>}
-      {summary && <p className="text-xs text-gray-400 mt-0.5 line-clamp-3">{summary}</p>}
+      {summary && <p className="text-xs text-fg-muted mt-0.5 line-clamp-3">{summary}</p>}
       <div className="flex items-center gap-1.5 mt-2">
         <span
           className={clsx(
@@ -552,8 +554,8 @@ function QuestionContent({
 
   return (
     <div className="mt-1">
-      {title && <p className="text-xs font-medium text-gray-200">{title}</p>}
-      {summary && <p className="text-xs text-gray-400 mt-0.5 line-clamp-4">{summary}</p>}
+      {title && <p className="text-xs font-medium text-fg">{title}</p>}
+      {summary && <p className="text-xs text-fg-muted mt-0.5 line-clamp-4">{summary}</p>}
       <div className="flex flex-wrap gap-1.5 mt-2">
         <ActionButton
           label="同意"
@@ -609,7 +611,7 @@ function CheckpointContent({ title, summary }: { title: string; summary: string 
   return (
     <div className="mt-1">
       {title && <p className="text-xs font-medium text-gray-200">{title}</p>}
-      {summary && <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{summary}</p>}
+      {summary && <p className="text-xs text-fg-muted mt-0.5 line-clamp-2">{summary}</p>}
     </div>
   );
 }
@@ -633,7 +635,7 @@ function ActionContent({ event }: { event: BridgeEvent }) {
   }
 
   return (
-    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{detail}</p>
+    <p className="text-xs text-fg-muted mt-1 line-clamp-2">{detail}</p>
   );
 }
 

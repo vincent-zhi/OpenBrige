@@ -1,4 +1,4 @@
-import type { SmartCard } from '@openbrige/shared-types';
+import type { SmartCard, CardAction } from '@openbrige/shared-types';
 import {
   HelpCircle,
   TestTube,
@@ -40,9 +40,10 @@ const severityIconColors = {
 
 interface SmartCardViewProps {
   card: SmartCard;
+  onAction?: (action: CardAction) => void;
 }
 
-export function SmartCardView({ card }: SmartCardViewProps) {
+export function SmartCardView({ card, onAction }: SmartCardViewProps) {
   const Icon = kindIcons[card.kind] ?? HelpCircle;
 
   return (
@@ -55,20 +56,23 @@ export function SmartCardView({ card }: SmartCardViewProps) {
       <div className="flex items-start gap-2.5">
         <Icon
           size={18}
-          className={clsx('shrink-0 mt-0.5', severityIconColors[card.severity] ?? 'text-gray-400')}
+          className={clsx('shrink-0 mt-0.5', severityIconColors[card.severity] ?? 'text-fg-muted')}
         />
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-white">{card.title}</h4>
-          <p className="text-xs text-gray-400 mt-1">{card.summary}</p>
+          <h4 className="text-sm font-medium text-fg">{card.title}</h4>
+          <p className="text-xs text-fg-muted mt-1">{card.summary}</p>
 
           {card.actions.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {card.actions.map((action, i) => (
                 <button
                   key={i}
-                  className="btn-secondary text-xs py-1 px-2.5"
+                  className="btn-secondary text-xs py-2.5 px-3"
+                  aria-label={action.label}
                   onClick={() => {
-                    if (action.type === 'send_prompt' && action.text) {
+                    if (onAction) {
+                      onAction(action);
+                    } else if (action.type === 'send_prompt' && action.text) {
                       const el = document.querySelector<HTMLInputElement>('[data-action-input]');
                       if (el) {
                         el.value = action.text;

@@ -35,7 +35,7 @@ export function TestReportPanel({ sessionId }: TestReportPanelProps) {
       {/* Summary */}
       <div className="card p-3">
         <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-medium text-white">Test Summary</h4>
+          <h4 className="text-sm font-medium text-fg">Test Summary</h4>
           <span className={clsx('text-xs font-medium', failed.length > 0 ? 'text-red-400' : 'text-green-400')}>
             {failed.length > 0 ? `${failed.length} failed` : 'All passed'}
           </span>
@@ -63,8 +63,8 @@ export function TestReportPanel({ sessionId }: TestReportPanelProps) {
               <XCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">{card.title}</p>
-              <p className="text-xs text-gray-400 mt-1 whitespace-pre-wrap">{card.summary}</p>
+              <p className="text-sm font-medium text-fg">{card.title}</p>
+              <p className="text-xs text-fg-muted mt-1 whitespace-pre-wrap">{card.summary}</p>
               {card.actions.length > 0 && (
                 <div className="flex gap-1.5 mt-2">
                   {card.actions.map((action, i) => (

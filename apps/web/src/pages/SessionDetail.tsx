@@ -1,11 +1,13 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
-import { fetchSession, fetchSessions, fetchEvents, fetchCards, fetchDiff, fetchFiles } from '../lib/api';
+import { useState, useEffect, useCallback } from 'react';
+import { fetchSession, fetchSessions, fetchEvents, fetchCards, fetchDiff, fetchFiles, sendInput } from '../lib/api';
+import type { CardAction } from '@openbrige/shared-types';
+import { cacheSessions, getCachedSessions, cacheSessionEvents, getCachedSessionEvents } from '../lib/indexeddb';
 import { wsClient } from '../lib/ws';
 import { useSessionStore } from '../stores/session';
 import { StatusBar } from '../components/StatusBar';
-import { Timeline } from '../components/Timeline';
+import { Timeline, type TimelineAction } from '../components/Timeline';
 import { TerminalOutput } from '../components/TerminalOutput';
 import { SmartCardView } from '../components/SmartCardView';
 import { DiffStudio } from '../components/DiffStudio';
@@ -13,7 +15,7 @@ import { ActionPad } from '../components/ActionPad';
 import { SessionReplay } from '../components/SessionReplay';
 import { SandboxPanel } from '../components/SandboxPanel';
 import { TestReportPanel } from '../components/TestReportPanel';
-import { ArrowLeft, FileCode2, Layers, Terminal, RotateCcw, Shield, TestTube2, Bot } from 'lucide-react';
+import { ArrowLeft, FileCode2, Layers, Terminal, RotateCcw, Shield, TestTube2, Bot, LayoutDashboard, GitCompare, Folder, Box, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 
@@ -25,6 +27,7 @@ export function SessionDetail() {
   const navigate = useNavigate();
   const [leftTab, setLeftTab] = useState<LeftTab>('timeline');
   const [rightTab, setRightTab] = useState<RightTab>('cards');
+  const [mobileTab, setMobileTab] = useState<RightTab | null>(null);
 
   const addEvent = useSessionStore((s) => s.addEvent);
 
@@ -37,12 +40,32 @@ export function SessionDetail() {
 
   const { data: allSessions = [] } = useQuery({
     queryKey: ['sessions'],
-    queryFn: fetchSessions,
+    queryFn: async () => {
+      try {
+        const data = await fetchSessions();
+        await cacheSessions(data);
+        return data;
+      } catch (error) {
+        const cached = await getCachedSessions();
+        if (cached.length > 0) return cached;
+        throw error;
+      }
+    },
   });
 
   const { data: eventsData } = useQuery({
     queryKey: ['events', id],
-    queryFn: () => fetchEvents(id!),
+    queryFn: async () => {
+      try {
+        const data = await fetchEvents(id!);
+        await cacheSessionEvents(id!, data.events);
+        return data;
+      } catch (error) {
+        const cached = await getCachedSessionEvents(id!);
+        if (cached.length > 0) return { events: cached, nextCursor: null };
+        throw error;
+      }
+    },
     enabled: !!id,
   });
 
@@ -74,6 +97,50 @@ export function SessionDetail() {
 
   const events = useSessionStore((s) => s.events.get(id ?? '') ?? eventsData?.events ?? []);
 
+  const handleTimelineAction = useCallback((action: TimelineAction) => {
+    switch (action.type) {
+      case 'open_diff':
+        setRightTab('diff');
+        break;
+      case 'send_prompt':
+        if (action.text && id) {
+          sendInput(id, action.text);
+        }
+        break;
+      case 'open_output':
+        setLeftTab('terminal');
+        break;
+      case 'open_files':
+        setRightTab('files');
+        break;
+      case 'bridge_command':
+        if (action.command && id) {
+          sendInput(id, action.command);
+        }
+        break;
+    }
+  }, [id, setRightTab, setLeftTab]);
+
+  const handleSmartCardAction = useCallback((action: CardAction) => {
+    switch (action.type) {
+      case 'send_prompt':
+        if (action.text && id) sendInput(id, action.text);
+        break;
+      case 'open_diff':
+        setRightTab('diff');
+        break;
+      case 'open_output':
+        setLeftTab('terminal');
+        break;
+      case 'open_files':
+        setRightTab('files');
+        break;
+      case 'bridge_command':
+        if (action.command && id) sendInput(id, action.command);
+        break;
+    }
+  }, [id, setRightTab, setLeftTab]);
+
   const projectSessions = allSessions.filter((s) => s.cwd === session?.cwd);
 
   if (!session) {
@@ -97,7 +164,7 @@ export function SessionDetail() {
         <StatusBar status={session.status} />
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden pb-14 lg:pb-0">
         {/* Left Sidebar - hidden on mobile */}
         <div className="hidden lg:flex flex-col w-64 border-r border-border overflow-hidden shrink-0">
           <div className="px-3 py-2 border-b border-border shrink-0">
@@ -180,7 +247,7 @@ export function SessionDetail() {
           </div>
           <div className="flex-1 overflow-hidden">
             {leftTab === 'timeline' ? (
-              <Timeline events={events} />
+              <Timeline events={events} onAction={handleTimelineAction} />
             ) : leftTab === 'terminal' ? (
               <TerminalOutput events={events} />
             ) : (
@@ -219,7 +286,7 @@ export function SessionDetail() {
                 {cards.length === 0 ? (
                   <p className="text-sm text-gray-600">No cards yet</p>
                 ) : (
-                  cards.map((card) => <SmartCardView key={card.id} card={card} />)
+                  cards.map((card) => <SmartCardView key={card.id} card={card} onAction={handleSmartCardAction} />)
                 )}
               </div>
             )}
@@ -239,13 +306,100 @@ export function SessionDetail() {
                 )}
               </div>
             )}
-            {rightTab === 'sandbox' && <SandboxPanel session={session} />}
+            {rightTab === 'sandbox' && <SandboxPanel session={session} onTabChange={setRightTab} />}
             {rightTab === 'tests' && <TestReportPanel sessionId={session.id} />}
           </div>
         </div>
       </div>
 
       <ActionPad session={session} />
+
+      {/* Mobile bottom tab bar - visible only below lg */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-bg-elevated">
+        <div className="flex items-center justify-around h-14">
+          {([
+            { key: 'cards' as const, label: 'Cards', icon: LayoutDashboard },
+            { key: 'diff' as const, label: 'Diff', icon: GitCompare },
+            { key: 'files' as const, label: 'Files', icon: Folder },
+            { key: 'sandbox' as const, label: 'Sandbox', icon: Box },
+            { key: 'tests' as const, label: 'Tests', icon: TestTube2 },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setMobileTab(mobileTab === tab.key ? null : tab.key)}
+              className={clsx(
+                'flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-h-[44px] min-w-[44px] transition-colors',
+                mobileTab === tab.key
+                  ? 'text-accent-hover'
+                  : 'text-gray-500',
+              )}
+            >
+              <tab.icon size={18} />
+              <span className="text-[10px] font-medium">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile panel overlay - slide-up drawer */}
+      {mobileTab && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileTab(null)}
+          />
+          {/* Drawer */}
+          <div className="relative mt-auto flex flex-col bg-bg-elevated rounded-t-xl max-h-[85vh] animate-slide-up">
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+              <h3 className="text-sm font-semibold text-white">
+                {mobileTab === 'cards' && 'Cards'}
+                {mobileTab === 'diff' && 'Diff'}
+                {mobileTab === 'files' && 'Files'}
+                {mobileTab === 'sandbox' && 'Sandbox'}
+                {mobileTab === 'tests' && 'Tests'}
+              </h3>
+              <button
+                onClick={() => setMobileTab(null)}
+                className="p-1 rounded-md hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {/* Drawer content */}
+            <div className="flex-1 overflow-y-auto p-3">
+              {mobileTab === 'cards' && (
+                <div className="space-y-3">
+                  {cards.length === 0 ? (
+                  <p className="text-sm text-gray-600">No cards yet</p>
+                ) : (
+                  <>{cards.map((card) => <SmartCardView key={card.id} card={card} onAction={handleSmartCardAction} />)}</>
+                )}
+                </div>
+              )}
+              {mobileTab === 'diff' && <DiffStudio diff={diff} />}
+              {mobileTab === 'files' && (
+                <div className="space-y-1">
+                  {files.length === 0 ? (
+                    <p className="text-sm text-gray-600">No files changed</p>
+                  ) : (
+                    files.map((f) => (
+                      <div key={f.path} className="flex items-center gap-2 px-2 py-1.5 rounded text-sm">
+                        <FileCode2 size={14} className="text-gray-500 shrink-0" />
+                        <span className="truncate text-gray-300">{f.path}</span>
+                        <span className="ml-auto text-xs text-gray-600 shrink-0">{f.changeType}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+              {mobileTab === 'sandbox' && <SandboxPanel session={session} onTabChange={setMobileTab} />}
+              {mobileTab === 'tests' && <TestReportPanel sessionId={session.id} />}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

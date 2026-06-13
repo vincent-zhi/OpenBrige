@@ -97,7 +97,7 @@ export function SessionReplay({ events }: SessionReplayProps) {
               i === currentIndex ? 'bg-accent/10 border border-accent/20' : ''
             }`}
           >
-            <span className="text-xs text-gray-500 shrink-0 mt-0.5 font-mono">
+            <span className="text-xs text-fg-subtle shrink-0 mt-0.5 font-mono">
               {formatRelativeTime(event.createdAt)}
             </span>
             <span className="text-xs font-medium text-accent shrink-0 mt-0.5">
@@ -139,7 +139,7 @@ export function SessionReplay({ events }: SessionReplayProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-fg-subtle">
             <Clock size={12} />
             <span>{currentIndex + 1} / {events.length}</span>
           </div>
