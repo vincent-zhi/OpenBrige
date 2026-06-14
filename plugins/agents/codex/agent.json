@@ -1,0 +1,23 @@
+{
+  "id": "codex",
+  "name": "Codex",
+  "command": "codex",
+  "type": "cli-agent",
+  "description": "OpenAI Codex CLI",
+  "icon": "terminal",
+  "color": "green",
+  "detection": {
+    "commands": ["codex"],
+    "configFiles": [".codex"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".codex/openbrige.json",
+        "template": "openbrige-config.json"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

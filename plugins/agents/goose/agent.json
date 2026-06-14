@@ -1,0 +1,30 @@
+{
+  "id": "goose",
+  "name": "Goose",
+  "command": "goose",
+  "type": "cli-agent",
+  "description": "Goose AI coding agent by Block",
+  "icon": "bird",
+  "color": "yellow",
+  "detection": {
+    "commands": ["goose"],
+    "configFiles": [".goose"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".goose/config.yaml",
+      "format": "mcp-servers"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": ".goose/openbrige.yaml",
+          "template": "goose-config.yaml"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

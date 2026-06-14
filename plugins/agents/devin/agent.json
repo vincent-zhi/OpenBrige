@@ -1,0 +1,17 @@
+{
+  "id": "devin",
+  "name": "Devin",
+  "command": "devin",
+  "type": "cloud-agent",
+  "description": "Devin AI software engineer by Cognition",
+  "icon": "cloud",
+  "color": "blue",
+  "detection": {
+    "commands": ["devin"],
+    "configFiles": []
+  },
+  "integration": {
+    "method": "instruction"
+  },
+  "profile": "profile.yaml"
+}

@@ -1,0 +1,6 @@
+{
+  "openbrige": {
+    "serverUrl": "{{serverUrl}}",
+    "wsUrl": "{{wsUrl}}"
+  }
+}

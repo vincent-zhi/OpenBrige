@@ -1,0 +1,7 @@
+{
+  "id": "openbrige-profile-roo-code",
+  "name": "Roo Code Profile",
+  "version": "0.1.0",
+  "type": "profile",
+  "description": "Agent profile for Roo Code AI coding assistant"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "antigravity",
+  "name": "Antigravity",
+  "command": "antigravity",
+  "type": "cli-agent",
+  "description": "Antigravity AI coding agent",
+  "icon": "rocket",
+  "color": "blue",
+  "detection": {
+    "commands": ["antigravity"],
+    "configFiles": []
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".antigravity/openbrige.json",
+        "template": "antigravity-config.json"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

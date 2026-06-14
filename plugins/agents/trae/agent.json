@@ -1,0 +1,23 @@
+{
+  "id": "trae",
+  "name": "TRAE SOLO",
+  "command": "trae",
+  "type": "ide-agent",
+  "description": "TRAE SOLO AI coding agent",
+  "icon": "zap",
+  "color": "red",
+  "detection": {
+    "commands": ["trae", "trae-agent"],
+    "configFiles": [".trae/rules"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".trae/rules/openbrige.md",
+        "template": "trae-rule.md"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

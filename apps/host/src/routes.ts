@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
+import { execSync } from 'node:child_process';
 import type { Store } from '@openbrige/local-store';
 import type { PtySupervisor } from '@openbrige/pty-supervisor';
 import type { GitDiffEngine } from '@openbrige/git-diff-engine';
@@ -12,7 +13,7 @@ import type { NotificationRouter } from '@openbrige/notification-router';
 import type { PluginRegistry } from '@openbrige/plugin-runtime';
 import type { WorktreeManager } from '@openbrige/worktree-manager';
 import type { SessionRecorder } from '@openbrige/session-recorder';
-import type { SessionStatus, BridgeEvent } from '@openbrige/shared-types';
+import type { SessionStatus, BridgeEvent, AgentManifest } from '@openbrige/shared-types';
 
 export interface RouteDeps {
   store: Store;
@@ -767,5 +768,131 @@ export function createRoutes(deps: RouteDeps): Hono {
     return c.json({ ok: true, event: { id: event.id, seq: event.seq } }, 201);
   });
 
+  // ── Setup Command endpoint ───────────────────────────────────
+
+  // GET /api/setup-command?agent=<agentId>
+  app.get('/api/setup-command', (c) => {
+    const agentId = c.req.query('agent');
+    if (!agentId) {
+      return c.json({ error: 'Missing "agent" query parameter' }, 400);
+    }
+
+    const proto = c.req.header('x-forwarded-proto') ?? (deps.port === 443 ? 'https' : 'http');
+    const hostHeader = c.req.header('host') ?? `${deps.host}:${deps.port}`;
+    const serverUrl = `${proto}://${hostHeader}`;
+
+    const command = `npx @openbrige/cli@latest setup ${agentId} --server ${serverUrl}`;
+
+    const agentNames: Record<string, string> = {
+      'claude-code': 'Claude Code',
+      'codex': 'Codex',
+      'aider': 'Aider',
+      'gemini-cli': 'Gemini CLI',
+      'opencode': 'OpenCode',
+      'cursor': 'Cursor',
+      'copilot': 'GitHub Copilot',
+      'windsurf': 'Windsurf',
+      'cline': 'Cline',
+      'trae': 'TRAE SOLO',
+      'goose': 'Goose',
+      'roo-code': 'Roo Code',
+      'hermes': 'Hermes Agent',
+      'devin': 'Devin',
+      'replit': 'Replit Agent',
+      'antigravity': 'Antigravity',
+      'continue': 'Continue',
+    };
+
+    const instruction = [
+      `请运行以下命令来安装和配置 OpenBrige 集成：`,
+      ``,
+      `\`${command}\``,
+      ``,
+      `这个命令会自动完成以下操作：`,
+      `1. 在当前项目目录初始化 .openbrige 配置`,
+      `2. 安装 ${agentNames[agentId] ?? agentId} 的 Agent Profile`,
+      `3. 配置与 OpenBrige 服务器的连接`,
+      ``,
+      `安装完成后，你可以通过 ${serverUrl} 在浏览器中监控 Agent 会话。`,
+    ].join('\n');
+
+    // Generate MCP config preview for MCP-type agents
+    const mcpAgents = ['claude-code', 'cursor', 'windsurf', 'cline', 'goose', 'roo-code', 'continue'];
+    let mcpConfig: string | undefined;
+    if (mcpAgents.includes(agentId)) {
+      const mcpEntry = {
+        openbrige: {
+          command: 'npx',
+          args: ['-y', '@openbrige/cli', 'mcp', '--server', serverUrl],
+        },
+      };
+      mcpConfig = JSON.stringify({ mcpServers: mcpEntry }, null, 2);
+    }
+
+    return c.json({
+      agent: agentId,
+      serverUrl,
+      command,
+      instruction,
+      mcpConfig,
+    });
+  });
+
+  // GET /api/agents
+  app.get('/api/agents', (c) => {
+    const agents: AgentManifest[] = [
+      // Already adapted
+      { id: 'claude-code', name: 'Claude Code', command: 'claude', type: 'cli-agent', description: 'Anthropic Claude Code CLI', icon: 'bot', color: 'purple', detection: { commands: ['claude'], configFiles: ['.claude/settings.json', 'CLAUDE.md'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+      { id: 'codex', name: 'Codex', command: 'codex', type: 'cli-agent', description: 'OpenAI Codex CLI', icon: 'terminal', color: 'green', detection: { commands: ['codex'], configFiles: ['.codex'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'aider', name: 'Aider', command: 'aider', type: 'cli-agent', description: 'Aider AI pair programming', icon: 'code', color: 'blue', detection: { commands: ['aider'], configFiles: ['.aider.conf.yml'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'gemini-cli', name: 'Gemini CLI', command: 'gemini', type: 'cli-agent', description: 'Google Gemini CLI', icon: 'sparkles', color: 'orange', detection: { commands: ['gemini'], configFiles: ['.gemini'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'opencode', name: 'OpenCode', command: 'opencode', type: 'cli-agent', description: 'OpenCode CLI', icon: 'monitor', color: 'cyan', detection: { commands: ['opencode'], configFiles: ['opencode.json'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      // Tier 1
+      { id: 'cursor', name: 'Cursor', command: 'cursor', type: 'ide-agent', description: 'AI-first code editor with agent mode', icon: 'cursor', color: 'indigo', detection: { commands: ['cursor', 'cursor-agent'], configFiles: ['.cursor/mcp.json', '.cursor/rules'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+      { id: 'copilot', name: 'GitHub Copilot', command: 'gh', type: 'ide-agent', description: 'GitHub Copilot Agent Mode', icon: 'github', color: 'gray', detection: { commands: ['gh', 'github-copilot-cli'], configFiles: ['.github/copilot'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'windsurf', name: 'Windsurf', command: 'windsurf', type: 'ide-agent', description: 'Codeium Windsurf AI IDE', icon: 'wind', color: 'teal', detection: { commands: ['windsurf', 'codeium'], configFiles: ['.windsurf/mcp.json', '.windsurf/rules'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+      // Tier 2
+      { id: 'cline', name: 'Cline', command: 'cline', type: 'ide-agent', description: 'Autonomous coding agent for VS Code', icon: 'robot', color: 'amber', detection: { commands: ['cline'], configFiles: ['.cline/mcp.json', '.clinerules'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+      { id: 'trae', name: 'TRAE SOLO', command: 'trae', type: 'ide-agent', description: 'ByteDance AI-native IDE', icon: 'zap', color: 'red', detection: { commands: ['trae'], configFiles: ['.trae/rules'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'goose', name: 'Goose', command: 'goose', type: 'cli-agent', description: 'Block open-source AI agent', icon: 'bird', color: 'yellow', detection: { commands: ['goose'], configFiles: ['.goose/config.yaml'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+      // Tier 3
+      { id: 'roo-code', name: 'Roo Code', command: 'roo-code', type: 'ide-agent', description: 'Open-source VS Code AI extension', icon: 'puzzle', color: 'pink', detection: { commands: ['roo-code', 'roo'], configFiles: ['.roo/mcp.json', '.roorules'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+      { id: 'hermes', name: 'Hermes Agent', command: 'hermes', type: 'cli-agent', description: 'Nous Research autonomous AI agent', icon: 'shield', color: 'slate', detection: { commands: ['hermes'], configFiles: ['.hermes/config.json'] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'devin', name: 'Devin', command: 'devin', type: 'cloud-agent', description: 'Cognition AI software engineer', icon: 'cloud', color: 'violet', detection: { commands: ['devin'], configFiles: [] }, integration: { method: 'instruction' }, profile: 'profile.yaml' },
+      // Tier 4
+      { id: 'replit', name: 'Replit Agent', command: 'repl', type: 'cloud-agent', description: 'Replit cloud AI development', icon: 'globe', color: 'emerald', detection: { commands: ['repl', 'replit'], configFiles: [] }, integration: { method: 'instruction' }, profile: 'profile.yaml' },
+      { id: 'antigravity', name: 'Antigravity', command: 'antigravity', type: 'cli-agent', description: 'Google Antigravity coding agent', icon: 'rocket', color: 'lime', detection: { commands: ['antigravity'], configFiles: [] }, integration: { method: 'config-inject' }, profile: 'profile.yaml' },
+      { id: 'continue', name: 'Continue', command: 'continue', type: 'ide-agent', description: 'Open-source AI code assistant', icon: 'play', color: 'sky', detection: { commands: ['continue'], configFiles: ['.continue/config.json'] }, integration: { method: 'mcp' }, profile: 'profile.yaml' },
+    ];
+
+    const shouldDetect = c.req.query('detect') === 'true';
+
+    if (!shouldDetect) {
+      return c.json({ agents });
+    }
+
+    const isWin = process.platform === 'win32';
+    const detectCmd = isWin ? 'where' : 'which';
+
+    const agentsWithInstall = agents.map((agent) => {
+      const installed = agent.detection.commands.some((cmd) => commandExistsOnServer(detectCmd, cmd));
+      return { ...agent, installed };
+    });
+
+    return c.json({ agents: agentsWithInstall });
+  });
+
   return app;
+}
+
+/**
+ * Check if a command exists in the system PATH (server-side).
+ */
+function commandExistsOnServer(detectCmd: string, command: string): boolean {
+  try {
+    execSync(`${detectCmd} ${command}`, { stdio: 'pipe', timeout: 5000, windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -1,0 +1,30 @@
+{
+  "id": "windsurf",
+  "name": "Windsurf",
+  "command": "windsurf",
+  "type": "ide-agent",
+  "description": "Codeium Windsurf AI IDE",
+  "icon": "wind",
+  "color": "teal",
+  "detection": {
+    "commands": ["windsurf", "windsurf-agent"],
+    "configFiles": [".windsurf/rules", ".windsurf/mcp.json"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".windsurf/mcp.json",
+      "format": "mcp-servers"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": ".windsurf/rules/openbrige.md",
+          "template": "windsurf-rule.md"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

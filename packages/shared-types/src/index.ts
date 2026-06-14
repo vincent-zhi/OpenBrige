@@ -7,3 +7,4 @@ export * from './plugin.js';
 export * from './classifier.js';
 export * from './diff.js';
 export * from './websocket.js';
+export * from './agent.js';

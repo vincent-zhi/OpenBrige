@@ -1,0 +1,23 @@
+{
+  "id": "hermes",
+  "name": "Hermes Agent",
+  "command": "hermes",
+  "type": "cli-agent",
+  "description": "Hermes AI coding agent",
+  "icon": "flame",
+  "color": "red",
+  "detection": {
+    "commands": ["hermes"],
+    "configFiles": [".hermes"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".hermes/config.json",
+        "template": "hermes-config.json"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

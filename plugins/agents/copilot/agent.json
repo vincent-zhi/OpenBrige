@@ -1,0 +1,23 @@
+{
+  "id": "copilot",
+  "name": "GitHub Copilot",
+  "command": "gh",
+  "type": "ide-agent",
+  "description": "GitHub Copilot Agent Mode",
+  "icon": "github",
+  "color": "green",
+  "detection": {
+    "commands": ["gh"],
+    "configFiles": [".github/copilot"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".github/copilot/openbrige.md",
+        "template": "copilot-instructions.md"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

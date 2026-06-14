@@ -1,0 +1,12 @@
+# OpenBrige Integration
+
+This project uses OpenBrige for remote monitoring and control.
+OpenBrige server: {{serverUrl}}
+
+You can use the OpenBrige MCP server to report progress and get instructions.
+The MCP server is configured in `.windsurf/mcp.json`.
+
+## Available MCP Tools
+- `report_progress`: Report your current progress to OpenBrige
+- `get_instructions`: Get OpenBrige instructions for this project
+- `send_event`: Send a custom event to OpenBrige

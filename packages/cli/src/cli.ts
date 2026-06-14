@@ -8,6 +8,10 @@ import { startServer } from '@openbrige/host';
 import { NetworkDoctor } from '@openbrige/network-doctor';
 import { LanDirectProvider } from '@openbrige/connection-manager';
 import { printBanner, printDiagnostics } from './banner.js';
+import { runSetup, generateSetupCommand, generateAgentInstruction, listAvailableAgents } from './agent-setup.js';
+import { detectInstalledAgents } from './agent-detect.js';
+import { AgentRegistry } from './agent-registry.js';
+import { startMcpServer } from './mcp-server.js';
 import type { BridgeSession, AgentProfile, Plugin } from '@openbrige/shared-types';
 
 const DEFAULT_PORT = 7443;
@@ -479,6 +483,144 @@ profileCmd
       console.error('  Is the server running? Start it with: openbrige start');
       process.exit(1);
     }
+  });
+
+// ── setup ────────────────────────────────────────────────────
+
+program
+  .command('setup')
+  .description('Setup OpenBrige integration for a specific agent')
+  .argument('<agent>', 'Agent ID (e.g. claude-code, codex, aider, gemini-cli, opencode)')
+  .option('-s, --server <url>', 'OpenBrige server URL (e.g. http://192.168.1.100:7443)')
+  .option('-p, --port <port>', 'Server port (used with --host to build URL)', String(DEFAULT_PORT))
+  .option('-H, --host <host>', 'Server host (used with --port to build URL)', 'localhost')
+  .option('--tls', 'Use HTTPS/WS protocol')
+  .option('--print-command', 'Print the one-liner setup command without executing')
+  .option('--instruction', 'Print a human-readable instruction for the agent')
+  .option('-d, --dir <path>', 'Project directory (default: current directory)')
+  .action((agent: string, opts: {
+    server?: string;
+    port: string;
+    host: string;
+    tls?: boolean;
+    printCommand?: boolean;
+    instruction?: boolean;
+    dir?: string;
+  }) => {
+    // Build server URL
+    let serverUrl = opts.server;
+    if (!serverUrl) {
+      const proto = opts.tls ? 'https' : 'http';
+      serverUrl = `${proto}://${opts.host}:${opts.port}`;
+    }
+
+    // --print-command: just print the one-liner
+    if (opts.printCommand) {
+      try {
+        console.log(generateSetupCommand(agent, serverUrl));
+      } catch (err) {
+        console.error(`  Error: ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    // --instruction: print a human-readable instruction
+    if (opts.instruction) {
+      try {
+        console.log(generateAgentInstruction(agent, serverUrl));
+      } catch (err) {
+        console.error(`  Error: ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    // Run the actual setup
+    try {
+      console.log();
+      console.log(`  Setting up OpenBrige for "${agent}"...`);
+      console.log(`  Server: ${serverUrl}`);
+      console.log();
+
+      const result = runSetup(agent, serverUrl, opts.dir);
+
+      // Print results
+      for (const step of result.steps) {
+        const icon = step.success ? '✓' : '✗';
+        const opt = step.optional ? ' (optional)' : '';
+        const err = step.error ? ` - ${step.error}` : '';
+        console.log(`  ${icon} ${step.label}${opt}${err}`);
+      }
+
+      if (result.profileInstalled) {
+        console.log(`  ✓ Agent profile installed`);
+      }
+
+      console.log();
+      console.log(`  Setup complete! OpenBrige is configured for ${agent}.`);
+      console.log(`  Start the server with: openbrige start ${agent}`);
+      console.log(`  Web UI: ${serverUrl}`);
+      console.log();
+    } catch (err) {
+      console.error(`  Error: ${err instanceof Error ? err.message : String(err)}`);
+      console.error();
+      console.error('  Available agents:');
+      for (const a of listAvailableAgents()) {
+        console.error(`    ${a.id.padEnd(16)} ${a.name} (${a.command})`);
+      }
+      process.exit(1);
+    }
+  });
+
+// ── agents ──────────────────────────────────────────────────
+
+program
+  .command('agents')
+  .description('List available agent integrations')
+  .option('--detect', 'Detect which agents are installed on this system')
+  .action((opts: { detect?: boolean }) => {
+    if (opts.detect) {
+      // Load agents from the registry and run detection
+      const registry = new AgentRegistry();
+      const agents = registry.loadDefaultAgents(process.cwd());
+      const detected = detectInstalledAgents(agents);
+
+      console.log();
+      console.log(`  ${'ID'.padEnd(16)} ${'Name'.padEnd(16)} ${'Command'.padEnd(12)} ${'Installed'.padEnd(10)} Description`);
+      console.log(`  ${'─'.repeat(16)} ${'─'.repeat(16)} ${'─'.repeat(12)} ${'─'.repeat(10)} ${'─'.repeat(30)}`);
+      for (const a of detected) {
+        const installedLabel = a.installed ? 'Yes' : 'No';
+        console.log(`  ${a.id.padEnd(16)} ${a.name.padEnd(16)} ${a.command.padEnd(12)} ${installedLabel.padEnd(10)} ${a.description}`);
+      }
+      console.log();
+      const installedCount = detected.filter(a => a.installed).length;
+      console.log(`  ${installedCount}/${detected.length} agents installed`);
+      console.log();
+      console.log('  Usage: openbrige setup <agent-id> --server <url>');
+      console.log();
+    } else {
+      const agents = listAvailableAgents();
+      console.log();
+      console.log(`  ${'ID'.padEnd(16)} ${'Name'.padEnd(16)} ${'Command'.padEnd(12)} Description`);
+      console.log(`  ${'─'.repeat(16)} ${'─'.repeat(16)} ${'─'.repeat(12)} ${'─'.repeat(30)}`);
+      for (const a of agents) {
+        console.log(`  ${a.id.padEnd(16)} ${a.name.padEnd(16)} ${a.command.padEnd(12)} ${a.description}`);
+      }
+      console.log();
+      console.log('  Usage: openbrige setup <agent-id> --server <url>');
+      console.log();
+    }
+  });
+
+// ── mcp ──────────────────────────────────────────────────────
+
+program
+  .command('mcp')
+  .description('Start the OpenBrige MCP Server (stdio mode)')
+  .requiredOption('-s, --server <url>', 'OpenBrige server URL (e.g. http://localhost:7443)')
+  .action((opts: { server: string }) => {
+    startMcpServer(opts.server);
   });
 
 // ── update ──────────────────────────────────────────────────

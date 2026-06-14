@@ -1,0 +1,30 @@
+{
+  "id": "roo-code",
+  "name": "Roo Code",
+  "command": "roo-code",
+  "type": "ide-agent",
+  "description": "Roo Code AI coding assistant for VS Code",
+  "icon": "puzzle",
+  "color": "purple",
+  "detection": {
+    "commands": ["roo-code"],
+    "configFiles": [".roo/mcp.json", ".roorules"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".roo/mcp.json",
+      "format": "mcp-servers"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": ".roorules/openbrige.md",
+          "template": "roo-rule.md"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

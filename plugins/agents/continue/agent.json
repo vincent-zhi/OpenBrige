@@ -1,0 +1,30 @@
+{
+  "id": "continue",
+  "name": "Continue",
+  "command": "continue",
+  "type": "ide-agent",
+  "description": "Continue AI coding assistant for VS Code",
+  "icon": "play",
+  "color": "green",
+  "detection": {
+    "commands": ["continue"],
+    "configFiles": [".continue/config.json"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".continue/config.json",
+      "format": "mcp-servers"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": ".continue/openbrige.md",
+          "template": "continue-rule.md"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

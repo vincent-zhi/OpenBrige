@@ -1,0 +1,6 @@
+
+## OpenBrige Integration
+
+This project uses OpenBrige for remote monitoring and control.
+OpenBrige server: {{serverUrl}}
+You can use the OpenBrige MCP server to report progress and get instructions.

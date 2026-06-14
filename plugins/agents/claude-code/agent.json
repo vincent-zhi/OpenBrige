@@ -1,0 +1,30 @@
+{
+  "id": "claude-code",
+  "name": "Claude Code",
+  "command": "claude",
+  "type": "cli-agent",
+  "description": "Anthropic Claude Code CLI",
+  "icon": "bot",
+  "color": "purple",
+  "detection": {
+    "commands": ["claude"],
+    "configFiles": [".claude/settings.json", "CLAUDE.md"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".claude/settings.json",
+      "format": "claude-settings"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "template": "claude-md.mdc"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "cursor",
+  "name": "Cursor",
+  "command": "cursor",
+  "type": "ide-agent",
+  "description": "AI-first code editor with agent mode",
+  "icon": "mouse-pointer",
+  "color": "blue",
+  "detection": {
+    "commands": ["cursor", "cursor-agent"],
+    "configFiles": [".cursor/rules", ".cursor/mcp.json"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".cursor/mcp.json",
+      "format": "mcp-servers"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": ".cursor/rules/openbrige.mdc",
+          "template": "openbrige-rule.mdc"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

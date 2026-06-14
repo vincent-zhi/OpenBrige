@@ -1,0 +1,7 @@
+{
+  "id": "openbrige-profile-hermes",
+  "name": "Hermes Agent Profile",
+  "version": "0.1.0",
+  "type": "profile",
+  "description": "Agent profile for Hermes AI coding agent"
+}

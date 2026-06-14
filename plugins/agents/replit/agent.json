@@ -1,0 +1,17 @@
+{
+  "id": "replit",
+  "name": "Replit Agent",
+  "command": "repl",
+  "type": "cloud-agent",
+  "description": "Replit AI coding agent",
+  "icon": "cloud",
+  "color": "orange",
+  "detection": {
+    "commands": ["repl", "replit"],
+    "configFiles": [".replit"]
+  },
+  "integration": {
+    "method": "instruction"
+  },
+  "profile": "profile.yaml"
+}

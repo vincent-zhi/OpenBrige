@@ -1,0 +1,23 @@
+{
+  "id": "aider",
+  "name": "Aider",
+  "command": "aider",
+  "type": "cli-agent",
+  "description": "Aider AI pair programming",
+  "icon": "code",
+  "color": "blue",
+  "detection": {
+    "commands": ["aider"],
+    "configFiles": [".aider.conf.yml"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".aider.conf.yml",
+        "template": "aider-conf.yml"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

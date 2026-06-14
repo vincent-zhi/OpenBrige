@@ -1,0 +1,23 @@
+{
+  "id": "gemini-cli",
+  "name": "Gemini CLI",
+  "command": "gemini",
+  "type": "cli-agent",
+  "description": "Google Gemini CLI",
+  "icon": "sparkles",
+  "color": "orange",
+  "detection": {
+    "commands": ["gemini"],
+    "configFiles": [".gemini"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": ".gemini/openbrige.json",
+        "template": "openbrige-config.json"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

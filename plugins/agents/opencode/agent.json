@@ -1,0 +1,23 @@
+{
+  "id": "opencode",
+  "name": "OpenCode",
+  "command": "opencode",
+  "type": "cli-agent",
+  "description": "OpenCode CLI",
+  "icon": "file-code",
+  "color": "teal",
+  "detection": {
+    "commands": ["opencode"],
+    "configFiles": ["opencode.json"]
+  },
+  "integration": {
+    "method": "config-inject",
+    "files": [
+      {
+        "path": "opencode.json",
+        "template": "openbrige-config.json"
+      }
+    ]
+  },
+  "profile": "profile.yaml"
+}

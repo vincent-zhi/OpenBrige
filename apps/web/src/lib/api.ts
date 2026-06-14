@@ -193,3 +193,31 @@ export async function generatePR(sessionId: string): Promise<{ description: stri
   if (!res.ok) throw new Error(`Failed to generate PR: ${res.statusText}`);
   return res.json();
 }
+
+// Agent Setup
+export interface AgentInfo {
+  id: string;
+  name: string;
+  command: string;
+  description: string;
+  type?: string;
+  installed?: boolean;
+}
+
+export interface SetupCommandResult {
+  agent: string;
+  serverUrl: string;
+  command: string;
+  instruction: string;
+  mcpConfig?: string;
+}
+
+export async function fetchAgents(detect?: boolean): Promise<AgentInfo[]> {
+  const params = detect ? '?detect=true' : '';
+  const data = await fetchJson<{ agents: AgentInfo[] }>(`/agents${params}`);
+  return data.agents;
+}
+
+export async function fetchSetupCommand(agentId: string): Promise<SetupCommandResult> {
+  return fetchJson<SetupCommandResult>(`/setup-command?agent=${encodeURIComponent(agentId)}`);
+}

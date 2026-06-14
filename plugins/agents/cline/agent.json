@@ -1,0 +1,30 @@
+{
+  "id": "cline",
+  "name": "Cline",
+  "command": "cline",
+  "type": "ide-agent",
+  "description": "Cline AI coding assistant for VS Code",
+  "icon": "code",
+  "color": "orange",
+  "detection": {
+    "commands": ["cline"],
+    "configFiles": [".cline/mcp.json", ".clinerules"]
+  },
+  "integration": {
+    "method": "mcp",
+    "mcpConfig": {
+      "target": ".cline/mcp.json",
+      "format": "mcp-servers"
+    },
+    "fallback": {
+      "method": "config-inject",
+      "files": [
+        {
+          "path": ".clinerules/openbrige.md",
+          "template": "cline-rule.md"
+        }
+      ]
+    }
+  },
+  "profile": "profile.yaml"
+}

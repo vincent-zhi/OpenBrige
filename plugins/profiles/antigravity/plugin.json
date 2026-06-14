@@ -1,0 +1,7 @@
+{
+  "id": "openbrige-profile-antigravity",
+  "name": "Antigravity Profile",
+  "version": "0.1.0",
+  "type": "profile",
+  "description": "Agent profile for Antigravity AI coding agent"
+}

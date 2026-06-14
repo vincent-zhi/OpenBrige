@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Bot } from 'lucide-react';
 import { useState } from 'react';
 import { fetchSessions } from '../lib/api';
 import { cacheSessions, getCachedSessions } from '../lib/indexeddb';
 import { useSessionStore } from '../stores/session';
 import { SessionCard } from '../components/SessionCard';
 import { NewSessionModal } from '../components/NewSessionModal';
+import { AgentSetupDialog } from '../components/AgentSetupDialog';
 import type { BridgeSession, SessionStatus } from '@openbrige/shared-types';
 
 const groups: { title: string; statuses: SessionStatus[]; emptyText: string }[] = [
@@ -28,6 +29,7 @@ const groups: { title: string; statuses: SessionStatus[]; emptyText: string }[] 
 
 export function Inbox() {
   const [showNew, setShowNew] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
   const [search, setSearch] = useState('');
   const setActiveSession = useSessionStore((s) => s.setActiveSession);
 
@@ -62,10 +64,16 @@ export function Inbox() {
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <h2 className="text-xl font-semibold text-fg">Inbox</h2>
-        <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={16} />
-          <span className="hidden sm:inline">New Session</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowSetup(true)} className="btn-ghost flex items-center gap-2 text-sm">
+            <Bot size={16} />
+            <span className="hidden sm:inline">Agent Setup</span>
+          </button>
+          <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
+            <Plus size={16} />
+            <span className="hidden sm:inline">New Session</span>
+          </button>
+        </div>
       </div>
 
       <div className="px-4 py-3 shrink-0">
@@ -117,6 +125,7 @@ export function Inbox() {
       </div>
 
       {showNew && <NewSessionModal onClose={() => setShowNew(false)} />}
+      {showSetup && <AgentSetupDialog onClose={() => setShowSetup(false)} />}
     </div>
   );
 }
